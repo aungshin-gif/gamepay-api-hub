@@ -168,3 +168,56 @@ svg.ic { shape-rendering: geometricPrecision; }
 .tile.bad, .tile.warn { /* state colours beat the accent so a problem is visible at a glance */ }
 .donut .fg { stroke: url(#ring); }
 @media (max-width: 430px) { .tile .ti { width: 38px; height: 38px; } .tile .tv { font-size: clamp(19px, 6vw, 24px); } }
+
+/* ---- v4: model boxes and model picker ---- */
+.masked { -webkit-text-security: disc; text-security: disc; }
+.mgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 420px; width: 100%; margin: 0 auto; }
+@media (min-width: 560px) { .mgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; } }
+.mbox { --a1: #38bdf8; --a2: #0284c7; --glow: rgba(2, 132, 199, .3);
+  position: relative; aspect-ratio: 1 / 1; overflow: hidden; padding: 16px; border-radius: 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+  background: linear-gradient(180deg, #fff, #fafbff); border: 1px solid #e7eaf6; box-shadow: 0 1px 0 #fff inset, 0 10px 26px rgba(31, 41, 90, .08); }
+.mbox::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--a1), var(--a2)); }
+.mbox::after { content: ""; position: absolute; right: -30px; bottom: -30px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, var(--glow), transparent 70%); opacity: .3; pointer-events: none; }
+.mbox > * { position: relative; z-index: 1; }
+.mhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mlogo { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: #fff; border: 1px solid var(--border); box-shadow: 0 6px 14px var(--glow); }
+.mlogo img, .olg img { width: auto; max-width: 70%; max-height: 70%; object-fit: contain; }
+.mname { font-size: clamp(18px, 5vw, 22px); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.mtag { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.io { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.io > div { display: grid; gap: 1px; padding: 8px 10px; border-radius: 12px; background: #f4f5fc; border: 1px solid #eceefa; min-width: 0; }
+.iol { font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 700; }
+.iov { font-size: 15px; font-variant-numeric: tabular-nums; } .ios { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mfoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 36px; }
+.pchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: #eef0f8; color: #5b6685; white-space: nowrap; }
+.pchip .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pchip.ok { background: #dcfce7; color: #166534; } .pchip.warn { background: #fff0d4; color: #9a5b00; } .pchip.bad { background: #fee2e2; color: #991b1b; }
+/* model picker */
+.mpick { background: #fff; border: 1px solid var(--border); color: var(--ink) !important; padding: 7px 12px 7px 10px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(31, 41, 90, .06); max-width: 210px; }
+.mpick img { width: auto; } .mpick span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+.sheet[hidden] { display: none; }
+.sheet-back { position: absolute; inset: 0; background: rgba(15, 26, 58, .38); backdrop-filter: blur(3px); }
+.sheet-card { position: relative; width: 100%; max-width: 520px; max-height: 86vh; overflow: auto; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: #fff; border-radius: 26px 26px 0 0; box-shadow: 0 -20px 50px rgba(31, 41, 90, .25); display: grid; gap: 12px; animation: sheetUp .24s ease both; }
+.sheet-card::before { content: ""; width: 44px; height: 5px; border-radius: 999px; background: #dfe3f2; justify-self: center; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; } .sheet-head b { font-size: 18px; }
+.sheet-list { display: grid; gap: 10px; }
+.opt { --a1: #38bdf8; --a2: #0284c7; --glow: rgba(2, 132, 199, .3);
+  width: 100%; text-align: left; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: 18px;
+  background: #fafbff; border: 1.5px solid #e7eaf6; color: var(--ink) !important; }
+.opt.on { border-color: var(--a2); background: #fff; box-shadow: 0 8px 20px var(--glow); }
+.olg { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, #fff, #f1f3ff); border: 1px solid var(--border); }
+.otx { display: grid; gap: 2px; min-width: 0; } .otx b { font-size: 16px; overflow-wrap: anywhere; } .otag { font-size: 12px; color: var(--muted); }
+.ort { display: grid; justify-items: end; gap: 6px; }
+.ock { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--a1), var(--a2)); } .ock svg.ic { width: 14px; height: 14px; stroke-width: 3; }
+@keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (min-width: 700px) { .sheet { align-items: center; } .sheet-card { border-radius: 26px; } .sheet-card::before { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sheet-card { animation: none; } }
+
+.brand-logo { width: 56px; height: 56px; border-radius: 16px; object-fit: cover; box-shadow: 0 8px 20px rgba(14, 116, 224, .25); flex: none; }
+.glyph { display: grid; place-items: center; width: 100%; height: 100%; font-weight: 800; color: var(--a2, #4d6bfe); line-height: 1; }
+.mpl { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: #f1f3ff; overflow: hidden; } .mpl img { width: auto; max-width: 100%; }
+.mpl .glyph { color: var(--blue-deep); }
+.a-teal .glyph, .a-violet .glyph, .a-sky .glyph { color: var(--a2); }
+.olg img, .mlogo img, .mpl img, .powered img { mix-blend-mode: multiply; } /* the logo PNG has a white background; this lets tinted boxes show through */

@@ -11,6 +11,11 @@ window.GPH_CONFIG = {
     "deepseek-v4-pro": { input: 1.32, output: 3.96 }
   },
   BASE_PRICE: 1.2,
+  // Display info per model. Prices above are the real ones we charge; tags are short descriptions only.
+  MODEL_INFO: {
+    "deepseek-flash":  { tag: "Everyday · lowest price", accent: "sky" },
+    "deepseek-v4-pro": { tag: "Advanced · higher price", accent: "violet" }
+  },
   // Optional: a link members tap for more credit (Telegram / Messenger / email). Empty = button hidden.
   CONTACT_URL: ""
 };
