@@ -67,3 +67,4 @@ dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; overflow-w
 .models span { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: #fff; }
 code { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--mist); font-size: 13px; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+pre.debug { margin: 0; padding: 12px; border-radius: 14px; background: #0f1b36; color: #cfe0ff; font-size: 12px; overflow: auto; white-space: pre-wrap; }

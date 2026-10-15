@@ -10,8 +10,48 @@
 
   // ---- The ONLY place that talks to the gateway. -------------------------------------------
   // Must return { name, active, limitUsd, usedUsd, expires, models[] }.
-  // The real per-key endpoint is NOT verified yet (see notes/HANDOFF.md section 7, item 7).
-  // Until the owner confirms one with curl, the real branch fails loudly instead of guessing.
+  // The gateway's per-key balance endpoints are NOT verified yet (notes/HANDOFF.md section 7, item 7).
+  // So the real branch tries the candidates below in order and remembers what each one answered
+  // (status + field names, never the key) so the owner can see which one works: open the page with ?debug=1.
+  var QUOTA_PER_USD = 500000; // new-api: $1 = 500,000 quota units (HANDOFF section 4)
+  var trace = [];
+
+  function getJson(path, key) {
+    return fetch(cfg.GATEWAY_URL + path, { headers: { Authorization: "Bearer " + key } })
+      .then(function (r) {
+        return r.text().then(function (t) {
+          var j = null; try { j = JSON.parse(t); } catch (e) {}
+          trace.push({ path: path, status: r.status, fields: j && typeof j === "object" ? Object.keys(j.data && typeof j.data === "object" ? j.data : j) : "not JSON" });
+          return { ok: r.ok, json: j };
+        });
+      }, function () { trace.push({ path: path, status: "network/CORS error" }); return { ok: false, json: null }; });
+  }
+
+  // Candidate A: GET /api/usage/token/  -> { data: { total_granted, total_used, ... } } in quota units
+  function tryTokenEndpoint(key) {
+    return getJson("/api/usage/token/", key).then(function (r) {
+      var d = r.ok && r.json && r.json.data;
+      if (!d || typeof d.total_granted !== "number" || typeof d.total_used !== "number") return null;
+      return { name: d.name, active: true, limitUsd: d.total_granted / QUOTA_PER_USD,
+               usedUsd: d.total_used / QUOTA_PER_USD,
+               expires: d.expires_at > 0 ? d.expires_at * 1000 : null,
+               models: Array.isArray(d.model_limits) ? d.model_limits : (d.model_limits ? Object.keys(d.model_limits) : []) };
+    });
+  }
+
+  // Candidate B: OpenAI-style billing: subscription (limit in USD) + usage (total_usage in cents)
+  function tryBillingEndpoints(key) {
+    return getJson("/v1/dashboard/billing/subscription", key).then(function (sub) {
+      var j = sub.json;
+      var limit = sub.ok && j ? (j.hard_limit_usd != null ? j.hard_limit_usd : j.system_hard_limit_usd) : null;
+      if (typeof limit !== "number") return null;
+      return getJson("/v1/dashboard/billing/usage", key).then(function (u) {
+        if (!u.ok || !u.json || typeof u.json.total_usage !== "number") return null;
+        return { name: "", active: true, limitUsd: limit, usedUsd: u.json.total_usage / 100, expires: null, models: [] };
+      });
+    });
+  }
+
   function fetchUsage(key) {
     if (MOCK) {
       return new Promise(function (ok) {
@@ -21,7 +61,20 @@
         }, 500);
       });
     }
-    return Promise.reject(new Error("NOT_CONFIGURED"));
+    trace = [];
+    return tryTokenEndpoint(key)
+      .then(function (d) { return d || tryBillingEndpoints(key); })
+      .then(function (d) {
+        showTrace(key);
+        if (!d) throw new Error(trace.some(function (t) { return t.status === 401; }) ? "BAD_KEY" : "NOT_CONFIGURED");
+        return d;
+      });
+  }
+
+  // Debug panel (?debug=1): shows which endpoint answered with which status. The key itself is never printed.
+  function showTrace() {
+    if (params.get("debug") !== "1") return;
+    var box = $("debug"); box.hidden = false; box.textContent = JSON.stringify(trace, null, 1);
   }
   // -------------------------------------------------------------------------------------------
 
@@ -56,9 +109,10 @@
     if (!MOCK && !key) { fail("Please paste your API key first."); return; }
     btn.disabled = true; btn.textContent = "Checking...";
     fetchUsage(key).then(show).catch(function (err) {
-      fail(err.message === "NOT_CONFIGURED"
-        ? "This page is not connected to the gateway yet (owner still needs to confirm the balance endpoint). Try ?mock=1 to preview."
-        : "Could not check this key. Check it and try again.");
+      fail(err.message === "BAD_KEY" ? "The gateway says this key is not valid. Check it and try again."
+        : err.message === "NOT_CONFIGURED"
+        ? "The gateway did not return balance info for this key. (Owner: open this page with ?debug=1 to see what it answered.)"
+        : "Could not check this key. Try again.");
     }).then(function () { btn.disabled = false; btn.textContent = "Check usage"; });
   });
 
