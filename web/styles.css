@@ -108,3 +108,4 @@ pre.snip { flex: 1; min-width: 0; margin: 0; padding: 12px; border-radius: 14px;
 .tile .meter { height: 6px; border-radius: 999px; background: var(--mist); overflow: hidden; } .tile .meter i { display: block; height: 100%; background: var(--blue); border-radius: inherit; }
 .foot { margin: 6px 0 0; text-align: center; font-size: 12px; color: var(--muted); }
 .hero .stats { display: none; } /* the square tiles below show the same numbers */
+.powered img { height: 22px; width: auto; }
