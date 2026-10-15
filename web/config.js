@@ -17,5 +17,7 @@ window.GPH_CONFIG = {
     "deepseek-v4-pro": { tag: "Advanced · higher price", accent: "violet" }
   },
   // Optional: a link members tap for more credit (Telegram / Messenger / email). Empty = button hidden.
+  // Where members redeem codes today (log in, then Wallet). The in-page redeem is only a demo until the gateway API is confirmed.
+  WALLET_URL: "https://new-api-production-6f0d.up.railway.app",
   CONTACT_URL: ""
 };
