@@ -5,7 +5,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (n) { return Math.round(n).toLocaleString("en-US"); };
   var usd = function (n) { return "$" + n.toFixed(n < 10 ? 3 : 2); };
-  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "" };
+  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "", sess: { in: 0, out: 0 } };
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
@@ -31,6 +31,8 @@
     send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/>',
+    upload: '<path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 4h16"/>',
     play: '<path d="M7 4l13 8-13 8z"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
@@ -124,31 +126,38 @@
     if (sub) { var s = document.createElement("span"); s.className = "sub"; s.textContent = sub; d.appendChild(s); }
     parent.appendChild(d); return b;
   }
-  function tile(icon, label, value, sub, tone, meterPct) {
-    var d = document.createElement("div"); d.className = "tile" + (tone ? " " + tone : "");
-    d.innerHTML = '<span class="ti">' + svg(icon) + '</span><div><div class="tl"></div><div class="tv"></div><div class="ts"></div></div>';
-    d.querySelector(".tl").textContent = label; d.querySelector(".tv").textContent = value; d.querySelector(".ts").textContent = sub || "";
-    if (meterPct != null) { var m = document.createElement("div"); m.className = "meter"; m.innerHTML = "<i></i>"; m.firstChild.style.width = Math.max(0, Math.min(100, meterPct)) + "%"; d.querySelector("div").appendChild(m); }
+  // One tile = one coloured box. o: { icon, label, value, sub, tone, meter, accent, wide, full }
+  function tile(o) {
+    var d = document.createElement("div"); d.className = "tile a-" + (o.accent || "blue") + (o.tone ? " " + o.tone : "") + (o.wide ? " wide" : "") + (o.full ? " full" : "");
+    d.innerHTML = '<span class="ti">' + svg(o.icon) + '</span><div class="tb"><div class="tl"></div><div class="tv"></div><div class="ts"></div></div>';
+    d.querySelector(".tl").textContent = o.label; d.querySelector(".tv").textContent = o.value; d.querySelector(".ts").textContent = o.sub || "";
+    if (o.meter != null) { var m = document.createElement("div"); m.className = "meter"; m.innerHTML = "<i></i>"; m.firstChild.style.width = Math.max(0, Math.min(100, o.meter)) + "%"; d.querySelector(".tb").appendChild(m); }
     return d;
   }
   // Power = how fast the gateway answers. Source is the last model Test if there is one, otherwise the gateway ping.
   // Thresholds are a simple rule of thumb, not an official measure.
+  // Input / Output = tokens used in the Chat tab during this visit (from the gateway's usage numbers), with the price per 1M.
   function renderTiles() {
     var data = state.data, box = $("tiles"); if (!data) return; box.textContent = "";
-    var per = 1e6 / cfg.BASE_PRICE, limit = data.limitUsd * per, used = data.usedUsd * per, left = Math.max(limit - used, 0);
+    var per = 1e6 / cfg.BASE_PRICE, limit = data.limitUsd * per, used = data.usedUsd * per;
     var leftUsd = Math.max(data.limitUsd - data.usedUsd, 0), pctUsed = limit > 0 ? used / limit * 100 : 0;
     var days = data.expires ? Math.ceil((data.expires - Date.now()) / 864e5) : null;
-    box.appendChild(tile("shield", "Status", data.active ? (days !== null && days <= 0 ? "Expired" : "Active") : "Disabled",
-      state.ping != null ? "Gateway online" : "Gateway not checked", data.active && !(days !== null && days <= 0) ? "ok" : "bad"));
+    var okKey = data.active && !(days !== null && days <= 0);
     var sp = state.speed != null ? state.speed : state.ping;
-    var lvl = sp == null ? ["--", "", "No data yet"] : sp <= 400 ? ["Fast", "ok"] : sp <= 1200 ? ["Normal", "warn"] : ["Slow", "bad"];
-    box.appendChild(tile("power", "Power", lvl[0], sp == null ? "Run a model test" : sp + " ms (" + (state.speedSrc || "gateway ping") + ")", lvl[1]));
-    box.appendChild(tile("zap", "Tokens left", fmt(left), "of " + fmt(limit), "", limit > 0 ? left / limit * 100 : 0));
-    box.appendChild(tile("activity", "Tokens used", fmt(used), Math.round(pctUsed) + "% of limit", "", pctUsed));
-    box.appendChild(tile("coin", "Credit left", usd(leftUsd), "of " + usd(data.limitUsd)));
-    box.appendChild(tile("calendar", "Expires", days === null ? "Never" : (days <= 0 ? "Expired" : days + " days"), data.expires ? new Date(data.expires).toLocaleDateString() : "No expiry date", days !== null && days <= 3 ? "warn" : ""));
-    box.appendChild(tile("cube", "Models", String(state.models.length || data.models.length), "allowed for this key"));
-    box.appendChild(tile("clock", "Price (flash)", "$" + cfg.PRICES["deepseek-flash"].input, "per 1M tokens"));
+    var lvl = sp == null ? ["--", ""] : sp <= 400 ? ["Fast", "ok"] : sp <= 1200 ? ["Normal", "warn"] : ["Slow", "bad"];
+    var pr = cfg.PRICES[$("chatModel").value] || cfg.PRICES["deepseek-flash"];
+    box.appendChild(tile({ icon: "shield", label: "Status", accent: "green", value: data.active ? (days !== null && days <= 0 ? "Expired" : "Active") : "Disabled",
+      sub: state.ping != null ? "Gateway online" : "Gateway not checked", tone: okKey ? "ok" : "bad" }));
+    box.appendChild(tile({ icon: "power", label: "Power", accent: "amber", value: lvl[0], tone: lvl[1],
+      sub: sp == null ? "Run a model test" : sp + " ms (" + (state.speedSrc || "gateway ping") + ")", meter: sp == null ? null : 100 - Math.min(sp, 2000) / 20 }));
+    box.appendChild(tile({ icon: "coin", label: "Credit left", accent: "sky", wide: true, value: usd(leftUsd), sub: "of " + usd(data.limitUsd) + " total", meter: data.limitUsd > 0 ? leftUsd / data.limitUsd * 100 : 0 }));
+    box.appendChild(tile({ icon: "download", label: "Input", accent: "teal", value: fmt(state.sess.in), sub: "tokens this visit · $" + pr.input + "/1M" }));
+    box.appendChild(tile({ icon: "upload", label: "Output", accent: "indigo", value: fmt(state.sess.out), sub: "tokens this visit · $" + pr.output + "/1M" }));
+    box.appendChild(tile({ icon: "activity", label: "Used", accent: "rose", value: fmt(used), sub: Math.round(pctUsed) + "% of " + fmt(limit) }));
+    box.appendChild(tile({ icon: "calendar", label: "Expires", accent: "orange", value: days === null ? "Never" : (days <= 0 ? "Expired" : days + " days"),
+      sub: data.expires ? new Date(data.expires).toLocaleDateString() : "No expiry date", tone: days !== null && days <= 3 ? "warn" : "" }));
+    var ids = state.models.length ? state.models : data.models;
+    box.appendChild(tile({ icon: "cube", label: "Models", accent: "violet", full: true, value: String(ids.length), sub: ids.join("  ·  ") }));
   }
   function renderOverview(data) {
     var per = 1e6 / cfg.BASE_PRICE, limit = data.limitUsd * per, used = data.usedUsd * per, left = Math.max(limit - used, 0);
@@ -236,7 +245,7 @@
   function streamMock(onDelta, signal) {
     var words = "This is a demo reply. Connect your key to chat with DeepSeek for real.".split(" "), i = 0;
     return new Promise(function (ok) { (function tick() {
-      if (signal.aborted || i >= words.length) return ok({ usage: { total_tokens: 42 } });
+      if (signal.aborted || i >= words.length) return ok({ usage: { prompt_tokens: 10, completion_tokens: 32, total_tokens: 42 } });
       onDelta({ content: (i ? " " : "") + words[i++] }); setTimeout(tick, 60); })(); });
   }
   function streamReal(key, model, history, onDelta, signal) {
@@ -279,6 +288,7 @@
     var history = chat.msgs.slice(-MAX_HISTORY), model = $("chatModel").value;
     (MOCK ? streamMock(onDelta, chat.ctl.signal) : streamReal(key, model, history, onDelta, chat.ctl.signal)).then(function (res) {
       if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", content: answer }); }
+      if (res && res.usage) { state.sess.in += res.usage.prompt_tokens || 0; state.sess.out += res.usage.completion_tokens || 0; }
       if (res && res.usage && res.usage.total_tokens) { var sm = document.createElement("small"); sm.textContent = res.usage.total_tokens + " tokens"; bot.appendChild(sm); }
       if (!MOCK) refresh(true);
     }).catch(function (err) {
@@ -296,6 +306,7 @@
     if (chat.ctl) chat.ctl.abort(); chat.msgs = []; var m = $("msgs"); m.textContent = ""; m.appendChild(chatEmptyEl); chatEmptyEl.hidden = false;
   });
   fillChatModels();
+  $("chatModel").addEventListener("change", renderTiles);
   $("checkBtn").addEventListener("click", function () { refresh(false); });
   $("keyInput").addEventListener("keydown", function (e) { if (e.key === "Enter") refresh(false); });
   $("toggleKey").addEventListener("click", function () {
