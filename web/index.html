@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GamePay API Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232563eb%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="brand">
+    <div class="logo" aria-hidden="true">G</div>
+    <div>
+      <h1>GamePay API Hub</h1>
+      <p class="muted">Check your key's quota</p>
+    </div>
+  </header>
+
+  <section class="card" id="keyCard">
+    <label for="keyInput">Your API key</label>
+    <div class="row">
+      <input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+      <button type="button" class="ghost" id="toggleKey">Show</button>
+    </div>
+    <button type="button" class="primary" id="checkBtn">Check usage</button>
+    <p class="hint">The key is only sent to the gateway and is never saved on this page.</p>
+    <p class="notice" id="mockNotice" hidden>Demo mode: these numbers are fake.</p>
+  </section>
+
+  <p class="error" id="error" role="alert" hidden></p>
+
+  <section class="card" id="result" hidden>
+    <div class="top">
+      <span class="chip" id="statusChip">Active</span>
+      <span class="muted" id="keyName"></span>
+    </div>
+    <div class="left">
+      <span class="muted">Left</span>
+      <strong id="leftTokens">0</strong>
+      <span class="muted">tokens</span>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="bar"><i id="barFill"></i></div>
+    <dl class="stats">
+      <div><dt>Limit</dt><dd id="limitTokens">0</dd></div>
+      <div><dt>Used</dt><dd id="usedTokens">0</dd></div>
+      <div><dt>Expires</dt><dd id="expires">Never</dd></div>
+    </dl>
+    <div class="models" id="models"></div>
+  </section>
+
+  <section class="card" id="howCard">
+    <h2>Use it in your app</h2>
+    <p class="muted">Base URL</p>
+    <div class="row"><code id="baseUrl"></code><button type="button" class="ghost" id="copyBase">Copy</button></div>
+    <p class="muted">Model</p>
+    <code>deepseek-flash</code>
+  </section>
+</main>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
