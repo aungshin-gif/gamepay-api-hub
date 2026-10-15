@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f8fc">
 <title>GamePay API Hub</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%234d6bfe%27/%3E%3C/svg%3E">
+<link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,10 +13,10 @@
 <div class="app">
   <aside class="side">
     <div class="brand">
-      <div class="logo" aria-hidden="true">G</div>
-      <div><b>GamePay API Hub</b><span class="muted">DeepSeek gateway</span></div>
+      <img class="brand-logo" src="assets/logo-192.png" alt="GamePay Hub API logo" width="56" height="56">
+      <div><b>GamePay API Hub</b><span class="muted">API gateway</span></div>
     </div>
-    <div class="powered"><img id="dsLogo" src="assets/deepseek.png" alt="DeepSeek logo" height="40"><div><span>Powered by</span><b>DeepSeek</b></div></div>
+    <div class="powered"><img id="dsLogo" src="assets/deepseek.png" alt="DeepSeek logo" height="40"><div><span>Powered by</span><b id="poweredNames">DeepSeek</b></div></div>
     <nav class="nav" id="nav" aria-label="Sections">
       <button type="button" data-tab="overview" class="on"><i data-icon="home"></i><span>Overview</span></button>
       <button type="button" data-tab="chat"><i data-icon="chat"></i><span>Chat</span></button>
@@ -30,7 +30,7 @@
     <section class="card keybar" id="keyCard">
       <label for="keyInput"><i data-icon="key"></i> Your API key</label>
       <div class="row">
-        <input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+        <input id="keyInput" type="password" name="gph-api-key" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" placeholder="sk-...">
         <button type="button" class="icon-btn" id="toggleKey" aria-label="Show key"><i data-icon="eye"></i></button>
         <button type="button" class="primary" id="checkBtn" aria-label="Check key"><i data-icon="refresh"></i><span>Check</span></button>
       </div>
@@ -82,7 +82,8 @@
         <div class="top">
           <h2>Chat</h2>
           <div class="right">
-            <select id="chatModel" aria-label="Model"></select>
+            <button type="button" class="mpick" id="modelBtn" aria-haspopup="listbox" aria-expanded="false"><span class="mpl" id="modelBtnLogo"></span><span id="modelBtnName">deepseek-flash</span><i data-icon="chevron"></i></button>
+            <select id="chatModel" hidden aria-hidden="true"></select>
             <button type="button" class="icon-btn" id="chatClear" aria-label="Clear chat"><i data-icon="trash"></i></button>
           </div>
         </div>
@@ -100,7 +101,7 @@
     <section class="panel" id="tab-models">
       <div class="card">
         <div class="top"><h2>Models and status</h2><span class="chip" id="pingChip">not checked</span></div>
-        <p class="muted">Prices are USD per 1M tokens. "Test" sends a tiny message (a few tokens) to measure real speed.</p>
+        <p class="muted">Prices are USD per 1M tokens. "Test" sends a tiny message (a few tokens) to measure real speed. Token counts are from your Chat during this visit.</p>
         <div id="modelList" class="list"><p class="muted">Check your key first.</p></div>
       </div>
     </section>
@@ -143,8 +144,16 @@
         <p class="hint">Replace YOUR_KEY with your own key. Never share it or post it in screenshots.</p>
       </div>
     </section>
-    <p class="foot">Unofficial dashboard for a private gateway. Not affiliated with or endorsed by DeepSeek.</p>
+    <p class="foot">Unofficial dashboard for a private gateway. Not affiliated with or endorsed by DeepSeek, OpenAI or any model provider.</p>
   </main>
+</div>
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-back" id="sheetBack"></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-label="Choose a model">
+    <div class="sheet-head"><b>Choose a model</b><button type="button" class="icon-btn" id="sheetClose" aria-label="Close"><i data-icon="x"></i></button></div>
+    <div class="sheet-list" id="sheetList" role="listbox"></div>
+    <p class="hint">Prices differ per model. Your credit is shared by all of them.</p>
+  </div>
 </div>
 <script src="config.js"></script>
 <script src="app.js"></script>

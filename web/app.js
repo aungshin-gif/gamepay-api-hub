@@ -5,7 +5,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (n) { return Math.round(n).toLocaleString("en-US"); };
   var usd = function (n) { return "$" + n.toFixed(n < 10 ? 3 : 2); };
-  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "", sess: { in: 0, out: 0 } };
+  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "", sess: { in: 0, out: 0 }, ms: {} };
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
@@ -31,6 +31,8 @@
     send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    chevron: '<path d="M6 9l6 6 6-6"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
     download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/>',
     upload: '<path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 4h16"/>',
     play: '<path d="M7 4l13 8-13 8z"/>'
@@ -106,7 +108,7 @@
     var t0 = performance.now();
     return fetch(cfg.GATEWAY_URL + "/v1/chat/completions", { method: "POST",
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: model, messages: [{ role: "user", content: "hi" }], max_tokens: 8 }) })
+      body: JSON.stringify(Object.assign({ model: model, messages: [{ role: "user", content: "hi" }] }, providerOf(model).key === "deepseek" ? { max_tokens: 8 } : { max_completion_tokens: 16 })) })
       .then(function (r) { return { ok: r.ok, ms: Math.round(performance.now() - t0), status: r.status }; })
       .catch(function () { return { ok: false, ms: null }; });
   }
@@ -143,13 +145,13 @@
     var leftUsd = Math.max(data.limitUsd - data.usedUsd, 0), pctUsed = limit > 0 ? used / limit * 100 : 0;
     var days = data.expires ? Math.ceil((data.expires - Date.now()) / 864e5) : null;
     var okKey = data.active && !(days !== null && days <= 0);
-    var sp = state.speed != null ? state.speed : state.ping;
-    var lvl = sp == null ? ["--", ""] : sp <= 400 ? ["Fast", "ok"] : sp <= 1200 ? ["Normal", "warn"] : ["Slow", "bad"];
+    var sp = state.speed != null ? state.speed : state.ping, kind = state.speed != null ? "test" : "ping";
+    var lvl = powerOf(sp, kind), cap = kind === "test" ? 8000 : 2000;
     var pr = cfg.PRICES[$("chatModel").value] || cfg.PRICES["deepseek-flash"];
     box.appendChild(tile({ icon: "shield", label: "Status", accent: "green", value: data.active ? (days !== null && days <= 0 ? "Expired" : "Active") : "Disabled",
       sub: state.ping != null ? "Gateway online" : "Gateway not checked", tone: okKey ? "ok" : "bad" }));
-    box.appendChild(tile({ icon: "power", label: "Power", accent: "amber", value: lvl[0], tone: lvl[1],
-      sub: sp == null ? "Run a model test" : sp + " ms (" + (state.speedSrc || "gateway ping") + ")", meter: sp == null ? null : 100 - Math.min(sp, 2000) / 20 }));
+    box.appendChild(tile({ icon: "power", label: "Power", accent: "amber", value: lvl[0] === "Not tested" ? "--" : lvl[0], tone: lvl[1] === "idle" ? "" : lvl[1],
+      sub: sp == null ? "Run a model test" : sp + " ms (" + (state.speedSrc || "gateway ping") + ")", meter: sp == null ? null : 100 - Math.min(sp, cap) / cap * 100 }));
     box.appendChild(tile({ icon: "coin", label: "Credit left", accent: "sky", wide: true, value: usd(leftUsd), sub: "of " + usd(data.limitUsd) + " total", meter: data.limitUsd > 0 ? leftUsd / data.limitUsd * 100 : 0 }));
     box.appendChild(tile({ icon: "download", label: "Input", accent: "teal", value: fmt(state.sess.in), sub: "tokens this visit · $" + pr.input + "/1M" }));
     box.appendChild(tile({ icon: "upload", label: "Output", accent: "indigo", value: fmt(state.sess.out), sub: "tokens this visit · $" + pr.output + "/1M" }));
@@ -180,22 +182,61 @@
       var sub = rw.lastChild.querySelector(".sub"); sub.textContent += " · about " + (Math.round(lo) === Math.round(hi) ? fmt(lo) : fmt(lo) + " to " + fmt(hi)) + " tokens";
     });
   }
+  // Power level from a measured time. A model Test waits for a whole reply, so its scale is longer than the gateway ping scale.
+  // These thresholds are a rule of thumb, not an official measure.
+  function powerOf(ms, kind) {
+    if (ms == null) return ["Not tested", "idle"];
+    var t = kind === "test" ? [3000, 8000] : [400, 1200];
+    return ms <= t[0] ? ["Fast", "ok"] : ms <= t[1] ? ["Normal", "warn"] : ["Slow", "bad"];
+  }
+  function mstat(m) { return state.ms[m] || (state.ms[m] = { ms: null, testing: false, failed: "", in: 0, out: 0 }); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function logoImg(h, src) { var i = document.createElement("img"); i.src = src; i.alt = ""; i.height = h; i.addEventListener("error", function () { i.hidden = true; }); return i; }
+  // Which company a model id belongs to. Only DeepSeek has a logo file; other providers get a neutral letter badge.
+  function providerOf(id) {
+    id = String(id).toLowerCase();
+    if (/^deepseek/.test(id)) return { key: "deepseek", name: "DeepSeek", accent: "sky", logo: "assets/deepseek.png" };
+    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: null };
+    return { key: "other", name: "Other", accent: "violet", logo: null };
+  }
+  function logoFor(m, h) {
+    var p = providerOf(m); if (p.logo) return logoImg(h, p.logo);
+    var g = el("span", "glyph", p.name.charAt(0)); g.style.fontSize = Math.round(h * .62) + "px"; return g;
+  }
+  function updatePowered() {
+    var names = [], hasDs = false;
+    modelIds().forEach(function (m) { var p = providerOf(m); if (names.indexOf(p.name) < 0) names.push(p.name); if (p.key === "deepseek") hasDs = true; });
+    if (!names.length) { names = ["DeepSeek"]; hasDs = true; }
+    $("poweredNames").textContent = names.join(" · "); $("dsLogo").style.display = hasDs ? "" : "none";
+  }
+  function pchip(m) { var pw = powerOf(mstat(m).ms, "test"), c = el("span", "pchip " + pw[1]); c.appendChild(el("i", "dot")); c.appendChild(document.createTextNode(pw[0])); return c; }
+  function modelIds() { return state.models.length ? state.models : (state.data ? state.data.models : []); }
   function renderModels() {
-    var box = $("modelList"); box.textContent = "";
-    var ids = state.models.length ? state.models : (state.data ? state.data.models : []);
-    if (!ids.length) { box.innerHTML = '<p class="muted">No models returned for this key.</p>'; return; }
+    var box = $("modelList"), ids = modelIds(); box.textContent = ""; updatePowered();
+    if (!ids.length) { box.className = "list"; box.appendChild(el("p", "muted", "Check your key first.")); return; }
+    box.className = "mgrid";
     ids.forEach(function (m) {
-      var p = cfg.PRICES[m], btn = document.createElement("button"), ms = document.createElement("span"), wrap = document.createElement("div");
-      btn.type = "button"; btn.className = "small"; btn.innerHTML = svg("play") + "<span>Test</span>";
-      ms.className = "ms"; wrap.className = "right"; wrap.appendChild(ms); wrap.appendChild(btn);
-      item(box, m, p ? "$" + p.input + " in / $" + p.output + " out per 1M tokens" : "Price not listed", wrap);
+      var p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, st = mstat(m);
+      var d = el("div", "mbox a-" + (info.accent || providerOf(m).accent));
+      var head = el("div", "mhead"); head.appendChild(el("span", "mlogo")); head.firstChild.appendChild(logoFor(m, 28)); head.appendChild(pchip(m)); d.appendChild(head);
+      var mid = el("div", "mmid"); mid.appendChild(el("div", "mname", m)); mid.appendChild(el("div", "mtag", info.tag || (providerOf(m).name + (p ? "" : " · price not set")))); d.appendChild(mid);
+      var io = el("div", "io");
+      [["Input", p ? "$" + p.input : "--", st.in], ["Output", p ? "$" + p.output : "--", st.out]].forEach(function (r) {
+        var b = el("div"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1] + " /1M")); b.appendChild(el("span", "ios", fmt(r[2]) + " tokens")); io.appendChild(b);
+      }); d.appendChild(io);
+      var foot = el("div", "mfoot"), btn = el("button", "small"), res = el("span", "ms");
+      btn.type = "button"; btn.disabled = st.testing; btn.innerHTML = svg("play") + "<span>Test</span>";
+      if (st.testing) res.textContent = "testing..."; else if (st.failed) { res.className = "ms bad"; res.textContent = st.failed; } else if (st.ms != null) { res.className = "ms ok"; res.textContent = st.ms + " ms"; }
+      foot.appendChild(res); foot.appendChild(btn); d.appendChild(foot);
       btn.addEventListener("click", function () {
-        btn.disabled = true; ms.className = "ms"; ms.textContent = "testing...";
+        st.testing = true; st.failed = ""; renderModels();
         testModel(state.key, m).then(function (r) {
-          ms.className = "ms " + (r.ok ? "ok" : "bad"); ms.textContent = r.ok ? r.ms + " ms" : "failed" + (r.status ? " (" + r.status + ")" : "");
-          btn.disabled = false; if (r.ok) { state.speed = r.ms; state.speedSrc = "model test"; refresh(true); }
+          st.testing = false; st.ms = r.ok ? r.ms : null; st.failed = r.ok ? "" : "failed" + (r.status ? " (" + r.status + ")" : "");
+          if (r.ok) { state.speed = r.ms; state.speedSrc = "model test"; refresh(true); }
+          renderModels(); buildSheet(); renderTiles();
         });
       });
+      box.appendChild(d);
     });
   }
   function fail(msg) { var e = $("error"); e.textContent = msg; e.hidden = false; }
@@ -227,13 +268,38 @@
   var chatEmptyEl = $("chatEmpty"); // keep a reference: Clear empties the list and puts it back
   var MAX_HISTORY = 12; // only the last messages are sent, to keep token use in check
   function fillChatModels() {
-    var sel = $("chatModel"), cur = sel.value;
-    var ids = (state.models.length ? state.models : (state.data ? state.data.models : [])).slice();
+    var sel = $("chatModel"), cur = sel.value, ids = modelIds().slice();
     if (!ids.length) ids = Object.keys(cfg.PRICES);
     sel.textContent = "";
     ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
     sel.value = ids.indexOf(cur) >= 0 ? cur : (ids.indexOf("deepseek-flash") >= 0 ? "deepseek-flash" : ids[0]);
+    buildSheet();
   }
+  // Model picker: a bottom sheet on phones, a centred card on wide screens. The hidden <select> keeps the chosen value.
+  function buildSheet() {
+    var sel = $("chatModel"), list = $("sheetList"); if (!sel.options.length) return;
+    $("modelBtnName").textContent = sel.value; $("modelBtnLogo").textContent = ""; $("modelBtnLogo").appendChild(logoFor(sel.value, 20)); list.textContent = "";
+    Array.prototype.forEach.call(sel.options, function (o) {
+      var m = o.value, p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, on = m === sel.value;
+      var b = el("button", "opt a-" + (info.accent || providerOf(m).accent) + (on ? " on" : "")); b.type = "button"; b.setAttribute("role", "option"); b.setAttribute("aria-selected", on ? "true" : "false"); b.dataset.model = m;
+      var lg = el("span", "olg"); lg.appendChild(logoFor(m, 26)); b.appendChild(lg);
+      var tx = el("span", "otx"); tx.appendChild(el("b", "", m)); tx.appendChild(el("span", "otag", (info.tag || providerOf(m).name) + (p ? "  ·  $" + p.input + " in / $" + p.output + " out" : "  ·  price not set"))); b.appendChild(tx);
+      var rt = el("span", "ort"); rt.appendChild(pchip(m)); if (on) { var ck = el("span", "ock"); ck.innerHTML = svg("check"); rt.appendChild(ck); } b.appendChild(rt);
+      list.appendChild(b);
+    });
+  }
+  var sheetOpener = null;
+  function openSheet() { buildSheet(); $("sheet").hidden = false; $("modelBtn").setAttribute("aria-expanded", "true"); sheetOpener = document.activeElement;
+    var on = $("sheetList").querySelector(".opt.on") || $("sheetList").firstChild; if (on) on.focus(); }
+  function closeSheet() { $("sheet").hidden = true; $("modelBtn").setAttribute("aria-expanded", "false"); if (sheetOpener && sheetOpener.focus) sheetOpener.focus(); }
+  $("modelBtn").addEventListener("click", openSheet);
+  $("sheetClose").addEventListener("click", closeSheet);
+  $("sheetBack").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+  $("sheetList").addEventListener("click", function (e) {
+    var b = e.target.closest(".opt"); if (!b) return;
+    var sel = $("chatModel"); sel.value = b.dataset.model; sel.dispatchEvent(new Event("change")); buildSheet(); closeSheet();
+  });
   function bubble(kind, text) {
     chatEmptyEl.hidden = true;
     var d = document.createElement("div"); d.className = "msg " + kind; d.textContent = text; $("msgs").appendChild(d);
@@ -288,7 +354,7 @@
     var history = chat.msgs.slice(-MAX_HISTORY), model = $("chatModel").value;
     (MOCK ? streamMock(onDelta, chat.ctl.signal) : streamReal(key, model, history, onDelta, chat.ctl.signal)).then(function (res) {
       if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", content: answer }); }
-      if (res && res.usage) { state.sess.in += res.usage.prompt_tokens || 0; state.sess.out += res.usage.completion_tokens || 0; }
+      if (res && res.usage) { var u = res.usage, pi = u.prompt_tokens || 0, po = u.completion_tokens || 0; state.sess.in += pi; state.sess.out += po; var ms_ = mstat(model); ms_.in += pi; ms_.out += po; renderModels(); buildSheet(); }
       if (res && res.usage && res.usage.total_tokens) { var sm = document.createElement("small"); sm.textContent = res.usage.total_tokens + " tokens"; bot.appendChild(sm); }
       if (!MOCK) refresh(true);
     }).catch(function (err) {
@@ -306,11 +372,17 @@
     if (chat.ctl) chat.ctl.abort(); chat.msgs = []; var m = $("msgs"); m.textContent = ""; m.appendChild(chatEmptyEl); chatEmptyEl.hidden = false;
   });
   fillChatModels();
-  $("chatModel").addEventListener("change", renderTiles);
+  $("chatModel").addEventListener("change", function () { renderTiles(); $("modelBtnName").textContent = $("chatModel").value; });
   $("checkBtn").addEventListener("click", function () { refresh(false); });
   $("keyInput").addEventListener("keydown", function (e) { if (e.key === "Enter") refresh(false); });
+  // A password-type field makes the browser offer to save the key as a password. Where CSS can mask a text field instead, use that.
+  var keyBox = $("keyInput"), canMask = window.CSS && CSS.supports && CSS.supports("-webkit-text-security", "disc");
+  if (canMask) { keyBox.type = "text"; keyBox.classList.add("masked"); }
   $("toggleKey").addEventListener("click", function () {
-    var i = $("keyInput"), show = i.type === "password"; i.type = show ? "text" : "password"; setBtnIcon(this, show ? "eye-off" : "eye");
+    var show;
+    if (canMask) { show = keyBox.classList.contains("masked"); keyBox.classList.toggle("masked", !show); }
+    else { show = keyBox.type === "password"; keyBox.type = show ? "text" : "password"; }
+    setBtnIcon(this, show ? "eye-off" : "eye");
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-copy],[data-copytext]"); if (!b) return;
