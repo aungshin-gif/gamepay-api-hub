@@ -5,7 +5,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (n) { return Math.round(n).toLocaleString("en-US"); };
   var usd = function (n) { return "$" + n.toFixed(n < 10 ? 3 : 2); };
-  var state = { key: "", data: null, models: [] };
+  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "" };
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
@@ -25,6 +25,9 @@
     shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
     alert: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
     chat: '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/>',
+    power: '<path d="M12 2v9"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/>',
+    coin: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.5 2.5-1.5s2.5.6 2.5 1.7c0 2.2-5 1.2-5 3.6 0 1.1 1 1.7 2.5 1.7s2.5-.6 2.5-1.5"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     play: '<path d="M7 4l13 8-13 8z"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
@@ -118,6 +121,32 @@
     if (sub) { var s = document.createElement("span"); s.className = "sub"; s.textContent = sub; d.appendChild(s); }
     parent.appendChild(d); return b;
   }
+  function tile(icon, label, value, sub, tone, meterPct) {
+    var d = document.createElement("div"); d.className = "tile" + (tone ? " " + tone : "");
+    d.innerHTML = '<span class="ti">' + svg(icon) + '</span><div><div class="tl"></div><div class="tv"></div><div class="ts"></div></div>';
+    d.querySelector(".tl").textContent = label; d.querySelector(".tv").textContent = value; d.querySelector(".ts").textContent = sub || "";
+    if (meterPct != null) { var m = document.createElement("div"); m.className = "meter"; m.innerHTML = "<i></i>"; m.firstChild.style.width = Math.max(0, Math.min(100, meterPct)) + "%"; d.querySelector("div").appendChild(m); }
+    return d;
+  }
+  // Power = how fast the gateway answers. Source is the last model Test if there is one, otherwise the gateway ping.
+  // Thresholds are a simple rule of thumb, not an official measure.
+  function renderTiles() {
+    var data = state.data, box = $("tiles"); if (!data) return; box.textContent = "";
+    var per = 1e6 / cfg.BASE_PRICE, limit = data.limitUsd * per, used = data.usedUsd * per, left = Math.max(limit - used, 0);
+    var leftUsd = Math.max(data.limitUsd - data.usedUsd, 0), pctUsed = limit > 0 ? used / limit * 100 : 0;
+    var days = data.expires ? Math.ceil((data.expires - Date.now()) / 864e5) : null;
+    box.appendChild(tile("shield", "Status", data.active ? (days !== null && days <= 0 ? "Expired" : "Active") : "Disabled",
+      state.ping != null ? "Gateway online" : "Gateway not checked", data.active && !(days !== null && days <= 0) ? "ok" : "bad"));
+    var sp = state.speed != null ? state.speed : state.ping;
+    var lvl = sp == null ? ["--", "", "No data yet"] : sp <= 400 ? ["Fast", "ok"] : sp <= 1200 ? ["Normal", "warn"] : ["Slow", "bad"];
+    box.appendChild(tile("power", "Power", lvl[0], sp == null ? "Run a model test" : sp + " ms (" + (state.speedSrc || "gateway ping") + ")", lvl[1]));
+    box.appendChild(tile("zap", "Tokens left", fmt(left), "of " + fmt(limit), "", limit > 0 ? left / limit * 100 : 0));
+    box.appendChild(tile("activity", "Tokens used", fmt(used), Math.round(pctUsed) + "% of limit", "", pctUsed));
+    box.appendChild(tile("coin", "Credit left", usd(leftUsd), "of " + usd(data.limitUsd)));
+    box.appendChild(tile("calendar", "Expires", days === null ? "Never" : (days <= 0 ? "Expired" : days + " days"), data.expires ? new Date(data.expires).toLocaleDateString() : "No expiry date", days !== null && days <= 3 ? "warn" : ""));
+    box.appendChild(tile("cube", "Models", String(state.models.length || data.models.length), "allowed for this key"));
+    box.appendChild(tile("clock", "Price (flash)", "$" + cfg.PRICES["deepseek-flash"].input, "per 1M tokens"));
+  }
   function renderOverview(data) {
     var per = 1e6 / cfg.BASE_PRICE, limit = data.limitUsd * per, used = data.usedUsd * per, left = Math.max(limit - used, 0);
     var leftUsd = Math.max(data.limitUsd - data.usedUsd, 0), pct = limit > 0 ? left / limit * 100 : 0;
@@ -126,7 +155,7 @@
     $("expires").textContent = data.expires ? new Date(data.expires).toLocaleDateString() : "Never";
     $("keyName").textContent = data.name || "";
     var chip = $("statusChip"); chip.textContent = data.active ? "Active" : "Disabled"; chip.classList.toggle("off", !data.active);
-    donut($("donut1"), pct);
+    donut($("donut1"), pct); renderTiles();
     $("emptyState").hidden = true; $("overviewData").hidden = false;
     // credit tab
     $("creditEmpty").hidden = true; $("creditData").hidden = false;
@@ -152,7 +181,7 @@
         btn.disabled = true; ms.className = "ms"; ms.textContent = "testing...";
         testModel(state.key, m).then(function (r) {
           ms.className = "ms " + (r.ok ? "ok" : "bad"); ms.textContent = r.ok ? r.ms + " ms" : "failed" + (r.status ? " (" + r.status + ")" : "");
-          btn.disabled = false; if (r.ok) refresh(true);
+          btn.disabled = false; if (r.ok) { state.speed = r.ms; state.speedSrc = "model test"; refresh(true); }
         });
       });
     });
@@ -169,7 +198,7 @@
       state.data = d; renderOverview(d);
       if (quiet) return; // after a model test only the numbers change; keep the test results on screen
       return fetchModels(key).then(function (m) {
-        state.models = m.ids; var pc = $("pingChip");
+        state.models = m.ids; state.ping = m.ms; renderTiles(); var pc = $("pingChip");
         pc.textContent = m.ms != null ? "gateway " + m.ms + " ms" : "gateway unreachable"; pc.className = "chip" + (m.ms != null ? "" : " off");
         renderModels();
       });
@@ -198,5 +227,7 @@
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + b.getAttribute("data-tab")); });
     window.scrollTo(0, 0);
   });
+  var dl = $("dsLogo"); dl.addEventListener("error", function () { dl.hidden = true; });
+  if (dl.complete && dl.naturalWidth === 0) dl.hidden = true; // the error may have fired before this script ran
   paintIcons();
 })();
