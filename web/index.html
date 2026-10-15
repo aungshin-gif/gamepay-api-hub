@@ -4,61 +4,125 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GamePay API Hub</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232563eb%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%234d6bfe%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main class="wrap">
-  <header class="brand">
-    <div class="logo" aria-hidden="true">G</div>
-    <div>
-      <h1>GamePay API Hub</h1>
-      <p class="muted">Check your key's quota</p>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">G</div>
+      <div><b>GamePay API Hub</b><span class="muted">DeepSeek gateway</span></div>
     </div>
-  </header>
+    <div class="powered"><span>Powered by</span><img id="dsLogo" src="assets/deepseek.png" alt="DeepSeek logo" height="22"><b>DeepSeek</b></div>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <button type="button" data-tab="overview" class="on"><i data-icon="home"></i><span>Overview</span></button>
+      <button type="button" data-tab="models"><i data-icon="cube"></i><span>Models</span></button>
+      <button type="button" data-tab="credit"><i data-icon="wallet"></i><span>Credit</span></button>
+      <button type="button" data-tab="guide"><i data-icon="book"></i><span>Guide</span></button>
+    </nav>
+  </aside>
 
-  <section class="card" id="keyCard">
-    <label for="keyInput">Your API key</label>
-    <div class="row">
-      <input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
-      <button type="button" class="ghost" id="toggleKey">Show</button>
-    </div>
-    <button type="button" class="primary" id="checkBtn">Check usage</button>
-    <p class="hint">The key is only sent to the gateway and is never saved on this page.</p>
-    <p class="notice" id="mockNotice" hidden>Demo mode: these numbers are fake.</p>
-  </section>
+  <main class="main">
+    <section class="card keybar" id="keyCard">
+      <label for="keyInput"><i data-icon="key"></i> Your API key</label>
+      <div class="row">
+        <input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+        <button type="button" class="icon-btn" id="toggleKey" aria-label="Show key"><i data-icon="eye"></i></button>
+        <button type="button" class="primary" id="checkBtn" aria-label="Check key"><i data-icon="refresh"></i><span>Check</span></button>
+      </div>
+      <p class="hint">Sent only to the gateway. Never saved on this page.</p>
+      <p class="notice" id="mockNotice" hidden>Demo mode: these numbers are fake.</p>
+    </section>
 
-  <pre class="debug" id="debug" hidden></pre>
+    <p class="error" id="error" role="alert" hidden></p>
+    <pre class="debug" id="debug" hidden></pre>
 
-  <p class="error" id="error" role="alert" hidden></p>
+    <!-- Overview -->
+    <section class="panel on" id="tab-overview">
+      <div class="card empty" id="emptyState">
+        <i data-icon="shield" class="big"></i>
+        <h2>Paste your key to begin</h2>
+        <p class="muted">You will see your credit, usage, models and how to connect your app.</p>
+      </div>
+      <div id="overviewData" hidden>
+        <div class="card hero">
+          <div class="top"><span class="chip" id="statusChip">Active</span><span class="muted" id="keyName"></span></div>
+          <div class="hero-grid">
+            <div class="donut" id="donut1"></div>
+            <div>
+              <span class="muted">Tokens left</span>
+              <strong class="big-num" id="leftTokens">0</strong>
+              <span class="muted" id="leftUsd"></span>
+            </div>
+          </div>
+          <dl class="stats">
+            <div><dt><i data-icon="zap"></i> Limit</dt><dd id="limitTokens">0</dd></div>
+            <div><dt><i data-icon="activity"></i> Used</dt><dd id="usedTokens">0</dd></div>
+            <div><dt><i data-icon="clock"></i> Expires</dt><dd id="expires">Never</dd></div>
+          </dl>
+        </div>
+        <div class="tiles" id="tiles"></div>
+        <div class="card">
+          <h2>Use it in your app</h2>
+          <p class="muted">Base URL</p>
+          <div class="row"><code id="baseUrl"></code><button type="button" class="icon-btn" data-copy="baseUrl" aria-label="Copy base URL"><i data-icon="copy"></i></button></div>
+          <p class="muted">Recommended model</p>
+          <div class="row"><code>deepseek-flash</code><button type="button" class="icon-btn" data-copytext="deepseek-flash" aria-label="Copy model"><i data-icon="copy"></i></button></div>
+        </div>
+      </div>
+    </section>
 
-  <section class="card" id="result" hidden>
-    <div class="top">
-      <span class="chip" id="statusChip">Active</span>
-      <span class="muted" id="keyName"></span>
-    </div>
-    <div class="left">
-      <span class="muted">Left</span>
-      <strong id="leftTokens">0</strong>
-      <span class="muted">tokens</span>
-    </div>
-    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="bar"><i id="barFill"></i></div>
-    <dl class="stats">
-      <div><dt>Limit</dt><dd id="limitTokens">0</dd></div>
-      <div><dt>Used</dt><dd id="usedTokens">0</dd></div>
-      <div><dt>Expires</dt><dd id="expires">Never</dd></div>
-    </dl>
-    <div class="models" id="models"></div>
-  </section>
+    <!-- Models -->
+    <section class="panel" id="tab-models">
+      <div class="card">
+        <div class="top"><h2>Models and status</h2><span class="chip" id="pingChip">not checked</span></div>
+        <p class="muted">Prices are USD per 1M tokens. "Test" sends a tiny message (a few tokens) to measure real speed.</p>
+        <div id="modelList" class="list"><p class="muted">Check your key first.</p></div>
+      </div>
+    </section>
 
-  <section class="card" id="howCard">
-    <h2>Use it in your app</h2>
-    <p class="muted">Base URL</p>
-    <div class="row"><code id="baseUrl"></code><button type="button" class="ghost" id="copyBase">Copy</button></div>
-    <p class="muted">Model</p>
-    <code>deepseek-flash</code>
-  </section>
-</main>
+    <!-- Credit -->
+    <section class="panel" id="tab-credit">
+      <div class="card">
+        <h2>Your credit</h2>
+        <div id="creditEmpty" class="muted">Check your key first.</div>
+        <div id="creditData" hidden>
+          <div class="hero-grid">
+            <div class="donut" id="donut2"></div>
+            <div>
+              <span class="muted">Credit left</span>
+              <strong class="big-num" id="creditUsd">$0.00</strong>
+              <span class="muted" id="creditPct"></span>
+            </div>
+          </div>
+          <p class="warn" id="lowWarn" hidden><i data-icon="alert"></i> Credit is running low.</p>
+          <h3>What your credit buys</h3>
+          <div id="runway" class="list"></div>
+          <a class="primary linkbtn" id="contactBtn" href="#" hidden rel="noopener"><i data-icon="chat"></i><span>Ask for more credit</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Guide -->
+    <section class="panel" id="tab-guide">
+      <div class="card">
+        <h2>Connect in 3 steps</h2>
+        <ol class="steps">
+          <li>Base URL: <code class="inline" id="baseUrl2"></code></li>
+          <li>API key: the one you pasted above (keep it private).</li>
+          <li>Model: <code class="inline">deepseek-flash</code></li>
+        </ol>
+        <h3>curl</h3>
+        <div class="row"><pre class="snip" id="snipCurl"></pre><button type="button" class="icon-btn" data-copy="snipCurl" aria-label="Copy curl"><i data-icon="copy"></i></button></div>
+        <h3>Python (openai library)</h3>
+        <div class="row"><pre class="snip" id="snipPy"></pre><button type="button" class="icon-btn" data-copy="snipPy" aria-label="Copy Python"><i data-icon="copy"></i></button></div>
+        <p class="hint">Replace YOUR_KEY with your own key. Never share it or post it in screenshots.</p>
+      </div>
+    </section>
+    <p class="foot">Unofficial dashboard for a private gateway. Not affiliated with or endorsed by DeepSeek.</p>
+  </main>
+</div>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>
