@@ -195,7 +195,9 @@
     // credit tab
     $("creditEmpty").hidden = true; $("creditData").hidden = false;
     tick($("creditUsd"), "credit", leftUsd, usd); $("creditPct").textContent = Math.round(pct) + "% of " + usd(data.limitUsd) + " left";
-    donut($("donut2"), pct); $("lowWarn").hidden = pct >= 15;
+    donut($("donut2"), pct); $("lowWarn").hidden = pct >= 15; $("lowBar").hidden = pct >= 15;
+    $("topupMsg").textContent = "Hi! Please add credit to my GamePay API key named \"" + (data.name || "(no name)") + "\".\nCredit left: " + usd(leftUsd) + " (" + Math.round(pct) + "% of " + usd(data.limitUsd) + ")."
+      + (data.expires ? "\nExpires: " + new Date(data.expires).toLocaleDateString() : "") + "\nThank you!";
     var rw = $("runway"); rw.textContent = "";
     Object.keys(cfg.PRICES).forEach(function (m) {
       var p = cfg.PRICES[m], hi = leftUsd / Math.min(p.input, p.output) * 1e6, lo = leftUsd / Math.max(p.input, p.output) * 1e6;
@@ -414,6 +416,13 @@
       setBtnIcon(b, "check"); setTimeout(function () { setBtnIcon(b, "copy"); }, 1400);
     }).catch(function () { b.textContent = "!"; });
   });
+  $("copyTopup").addEventListener("click", function () {
+    var b = this, label = b.querySelector("span");
+    (navigator.clipboard ? navigator.clipboard.writeText($("topupMsg").textContent) : Promise.reject())
+      .then(function () { label.textContent = "Copied"; setTimeout(function () { label.textContent = "Copy message"; }, 1600); })
+      .catch(function () { label.textContent = "Select the text and copy it"; });
+  });
+  $("lowBar").addEventListener("click", function () { document.querySelector('.nav button[data-tab="credit"]').click(); });
   $("nav").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-tab]"); if (!b) return;
     document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x === b); });

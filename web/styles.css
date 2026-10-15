@@ -88,7 +88,7 @@ pre.snip { flex: 1; min-width: 0; margin: 0; padding: 12px; border-radius: 14px;
   .nav svg.ic { width: 20px; height: 20px; }
   .main { padding: 28px 28px 40px; }
 }
-@media (max-width: 430px) { .hero-grid { gap: 12px; } .donut { width: 96px; height: 96px; } .big-num { font-size: 32px; } .primary span { display: none; } }
+@media (max-width: 430px) { .hero-grid { gap: 12px; } .donut { width: 96px; height: 96px; } .big-num { font-size: 32px; } #checkBtn span { display: none; } }
 @media (prefers-reduced-motion: reduce) { .donut .fg { transition: none; } }
 
 .powered { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 12px; width: fit-content; border: 1px solid var(--border); border-radius: 999px; background: #fff; font-size: 13px; color: var(--muted); }
@@ -254,3 +254,6 @@ button:not([disabled]):active { transform: scale(.97); }
   .blob, .tile.enter, .panel.on, .tile.live .ti::after, .herobar i, .donut b, .sk { animation: none !important; }
   .tile .meter i, .herobar i, .mbox, .tile { transition: none !important; }
 }
+.topup { display: grid; gap: 10px; padding: 14px; border-radius: 18px; background: linear-gradient(180deg, #f6f8ff, #fff); border: 1px solid var(--border); }
+.topup h3 { margin: 0; color: var(--ink); font-size: 16px; } .topup .muted { margin: 0; }
+.lowbar { width: 100%; justify-content: flex-start; text-align: left; padding: 12px 16px; border-radius: 16px; background: #fff3dc; color: #8a5200 !important; border: 1px solid #f6d9a3; font-weight: 600; }
