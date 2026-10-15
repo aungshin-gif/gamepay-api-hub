@@ -28,6 +28,9 @@
     power: '<path d="M12 2v9"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/>',
     coin: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.5 2.5-1.5s2.5.6 2.5 1.7c0 2.2-5 1.2-5 3.6 0 1.1 1 1.7 2.5 1.7s2.5-.6 2.5-1.5"/>',
     calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+    stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+    trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
     play: '<path d="M7 4l13 8-13 8z"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
@@ -200,7 +203,7 @@
       return fetchModels(key).then(function (m) {
         state.models = m.ids; state.ping = m.ms; renderTiles(); var pc = $("pingChip");
         pc.textContent = m.ms != null ? "gateway " + m.ms + " ms" : "gateway unreachable"; pc.className = "chip" + (m.ms != null ? "" : " off");
-        renderModels();
+        renderModels(); fillChatModels();
       });
     }).catch(function (err) {
       state.data = null; $("emptyState").hidden = false; $("overviewData").hidden = true; $("creditEmpty").hidden = false; $("creditData").hidden = true;
@@ -209,6 +212,90 @@
         : "Could not check this key. Try again.");
     }).then(function () { btn.disabled = false; btn.querySelector("span").textContent = "Check"; });
   }
+
+  // ---------- chat ----------
+  var chat = { msgs: [], ctl: null, busy: false };
+  var chatEmptyEl = $("chatEmpty"); // keep a reference: Clear empties the list and puts it back
+  var MAX_HISTORY = 12; // only the last messages are sent, to keep token use in check
+  function fillChatModels() {
+    var sel = $("chatModel"), cur = sel.value;
+    var ids = (state.models.length ? state.models : (state.data ? state.data.models : [])).slice();
+    if (!ids.length) ids = Object.keys(cfg.PRICES);
+    sel.textContent = "";
+    ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
+    sel.value = ids.indexOf(cur) >= 0 ? cur : (ids.indexOf("deepseek-flash") >= 0 ? "deepseek-flash" : ids[0]);
+  }
+  function bubble(kind, text) {
+    chatEmptyEl.hidden = true;
+    var d = document.createElement("div"); d.className = "msg " + kind; d.textContent = text; $("msgs").appendChild(d);
+    window.scrollTo({ top: document.body.scrollHeight }); return d;
+  }
+  function setBusy(b) {
+    chat.busy = b; var btn = $("chatSend"); btn.innerHTML = svg(b ? "stop" : "send"); btn.setAttribute("aria-label", b ? "Stop" : "Send");
+  }
+  function streamMock(onDelta, signal) {
+    var words = "This is a demo reply. Connect your key to chat with DeepSeek for real.".split(" "), i = 0;
+    return new Promise(function (ok) { (function tick() {
+      if (signal.aborted || i >= words.length) return ok({ usage: { total_tokens: 42 } });
+      onDelta({ content: (i ? " " : "") + words[i++] }); setTimeout(tick, 60); })(); });
+  }
+  function streamReal(key, model, history, onDelta, signal) {
+    return fetch(cfg.GATEWAY_URL + "/v1/chat/completions", { method: "POST", signal: signal,
+      headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: model, messages: history, stream: true, stream_options: { include_usage: true } }) })
+      .then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { var m = ""; try { m = JSON.parse(t).error.message || ""; } catch (e) {} var err = new Error(m || ("HTTP " + r.status)); err.status = r.status; throw err; });
+        var reader = r.body.getReader(), dec = new TextDecoder(), buf = "", usage = null;
+        return (function pump() {
+          return reader.read().then(function (x) {
+            if (x.done) return { usage: usage };
+            buf += dec.decode(x.value, { stream: true });
+            var lines = buf.split("\n"); buf = lines.pop();
+            lines.forEach(function (ln) {
+              ln = ln.trim(); if (ln.indexOf("data:") !== 0) return; var p = ln.slice(5).trim(); if (p === "[DONE]") return;
+              try { var j = JSON.parse(p); if (j.usage) usage = j.usage; var dl = j.choices && j.choices[0] && j.choices[0].delta; if (dl) onDelta(dl); } catch (e) {}
+            });
+            return pump();
+          });
+        })();
+      });
+  }
+  function sendChat() {
+    if (chat.busy) { if (chat.ctl) chat.ctl.abort(); return; }
+    var input = $("chatInput"), text = input.value.trim(), key = state.key || $("keyInput").value.trim();
+    if (!text) return;
+    if (!MOCK && !key) { fail("Paste your API key above first."); return; }
+    $("error").hidden = true; input.value = ""; input.style.height = "auto";
+    chat.msgs.push({ role: "user", content: text }); bubble("user", text);
+    var bot = bubble("bot", ""), think = null, textNode = document.createElement("span"), answer = "";
+    bot.innerHTML = '<span class="dots"></span>'; var started = false;
+    chat.ctl = new AbortController(); setBusy(true);
+    var onDelta = function (dl) {
+      if (!started) { bot.textContent = ""; bot.appendChild(textNode); started = true; }
+      if (dl.reasoning_content) { if (!think) { think = document.createElement("div"); think.className = "think"; bot.insertBefore(think, textNode); } think.textContent += dl.reasoning_content; }
+      if (dl.content) { answer += dl.content; textNode.textContent = answer; }
+      window.scrollTo({ top: document.body.scrollHeight });
+    };
+    var history = chat.msgs.slice(-MAX_HISTORY), model = $("chatModel").value;
+    (MOCK ? streamMock(onDelta, chat.ctl.signal) : streamReal(key, model, history, onDelta, chat.ctl.signal)).then(function (res) {
+      if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", content: answer }); }
+      if (res && res.usage && res.usage.total_tokens) { var sm = document.createElement("small"); sm.textContent = res.usage.total_tokens + " tokens"; bot.appendChild(sm); }
+      if (!MOCK) refresh(true);
+    }).catch(function (err) {
+      if (err.name === "AbortError") { if (answer) chat.msgs.push({ role: "assistant", content: answer }); else { bot.remove(); chat.msgs.pop(); } return; }
+      bot.className = "msg err"; bot.textContent = err.status === 401 ? "The gateway says this key is not valid."
+        : err.status === 402 || err.status === 403 || /quota|balance/i.test(err.message) ? "Out of credit or not allowed for this model. " + err.message
+        : "Could not get a reply (" + (err.message || "network error") + ").";
+      chat.msgs.pop(); // do not keep the unanswered question in the history
+    }).then(function () { chat.ctl = null; setBusy(false); });
+  }
+  $("chatSend").addEventListener("click", sendChat);
+  $("chatInput").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendChat(); } });
+  $("chatInput").addEventListener("input", function () { this.style.height = "auto"; this.style.height = Math.min(this.scrollHeight, 140) + "px"; });
+  $("chatClear").addEventListener("click", function () {
+    if (chat.ctl) chat.ctl.abort(); chat.msgs = []; var m = $("msgs"); m.textContent = ""; m.appendChild(chatEmptyEl); chatEmptyEl.hidden = false;
+  });
+  fillChatModels();
   $("checkBtn").addEventListener("click", function () { refresh(false); });
   $("keyInput").addEventListener("keydown", function (e) { if (e.key === "Enter") refresh(false); });
   $("toggleKey").addEventListener("click", function () {

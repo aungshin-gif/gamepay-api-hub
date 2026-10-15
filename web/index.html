@@ -17,6 +17,7 @@
     <div class="powered"><span>Powered by</span><img id="dsLogo" src="assets/deepseek.png" alt="DeepSeek logo" height="22"><b>DeepSeek</b></div>
     <nav class="nav" id="nav" aria-label="Sections">
       <button type="button" data-tab="overview" class="on"><i data-icon="home"></i><span>Overview</span></button>
+      <button type="button" data-tab="chat"><i data-icon="chat"></i><span>Chat</span></button>
       <button type="button" data-tab="models"><i data-icon="cube"></i><span>Models</span></button>
       <button type="button" data-tab="credit"><i data-icon="wallet"></i><span>Credit</span></button>
       <button type="button" data-tab="guide"><i data-icon="book"></i><span>Guide</span></button>
@@ -69,6 +70,26 @@
           <div class="row"><code id="baseUrl"></code><button type="button" class="icon-btn" data-copy="baseUrl" aria-label="Copy base URL"><i data-icon="copy"></i></button></div>
           <p class="muted">Recommended model</p>
           <div class="row"><code>deepseek-flash</code><button type="button" class="icon-btn" data-copytext="deepseek-flash" aria-label="Copy model"><i data-icon="copy"></i></button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chat -->
+    <section class="panel" id="tab-chat">
+      <div class="card chatcard">
+        <div class="top">
+          <h2>Chat</h2>
+          <div class="right">
+            <select id="chatModel" aria-label="Model"></select>
+            <button type="button" class="icon-btn" id="chatClear" aria-label="Clear chat"><i data-icon="trash"></i></button>
+          </div>
+        </div>
+        <div class="msgs" id="msgs" aria-live="polite">
+          <p class="muted" id="chatEmpty">Ask anything. Messages stay on this page only and are cleared when you leave. Longer chats use more tokens because the history is sent each time.</p>
+        </div>
+        <div class="composer">
+          <textarea id="chatInput" rows="1" placeholder="Message DeepSeek..." aria-label="Message"></textarea>
+          <button type="button" class="primary round" id="chatSend" aria-label="Send"><i data-icon="send"></i></button>
         </div>
       </div>
     </section>
