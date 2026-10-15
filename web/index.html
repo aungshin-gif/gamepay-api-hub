@@ -10,6 +10,7 @@
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d6bfe"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
+<div class="blob b1" aria-hidden="true"></div><div class="blob b2" aria-hidden="true"></div>
 <div class="app">
   <aside class="side">
     <div class="brand">
@@ -48,7 +49,12 @@
         <h2>Paste your key to begin</h2>
         <p class="muted">You will see your credit, usage, models and how to connect your app.</p>
       </div>
+      <div class="skel" id="skel" hidden aria-hidden="true">
+        <div class="sk sk-hero"></div>
+        <div class="sk-grid"><div class="sk sk-sq"></div><div class="sk sk-sq"></div><div class="sk sk-wide"></div><div class="sk sk-sq"></div><div class="sk sk-sq"></div></div>
+      </div>
       <div id="overviewData" hidden>
+        <button type="button" class="lowbar" id="lowBar" hidden><i data-icon="alert"></i><span>Credit is running low. Tap to ask for more.</span></button>
         <div class="card hero">
           <div class="top"><span class="chip" id="statusChip">Active</span><span class="muted" id="keyName"></span></div>
           <div class="hero-grid">
@@ -59,6 +65,7 @@
               <span class="muted" id="leftUsd"></span>
             </div>
           </div>
+          <div class="herobar" role="progressbar" aria-label="Credit left" aria-valuemin="0" aria-valuemax="100" id="heroBarWrap"><i id="heroBar"></i></div>
           <dl class="stats">
             <div><dt><i data-icon="zap"></i> Limit</dt><dd id="limitTokens">0</dd></div>
             <div><dt><i data-icon="activity"></i> Used</dt><dd id="usedTokens">0</dd></div>
@@ -123,7 +130,15 @@
           <p class="warn" id="lowWarn" hidden><i data-icon="alert"></i> Credit is running low.</p>
           <h3>What your credit buys</h3>
           <div id="runway" class="list"></div>
-          <a class="primary linkbtn" id="contactBtn" href="#" hidden rel="noopener"><i data-icon="chat"></i><span>Ask for more credit</span></a>
+          <div class="topup">
+            <h3>Need more credit?</h3>
+            <p class="muted">Credit is added by the admin. Copy this message and send it to them. It never contains your key.</p>
+            <pre class="snip" id="topupMsg"></pre>
+            <div class="row">
+              <button type="button" class="primary" id="copyTopup"><i data-icon="copy"></i><span>Copy message</span></button>
+              <a class="small linkbtn" id="contactBtn" href="#" target="_blank" rel="noopener" hidden><i data-icon="chat"></i><span>Open chat</span></a>
+            </div>
+          </div>
         </div>
       </div>
     </section>

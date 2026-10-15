@@ -5,7 +5,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (n) { return Math.round(n).toLocaleString("en-US"); };
   var usd = function (n) { return "$" + n.toFixed(n < 10 ? 3 : 2); };
-  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "", sess: { in: 0, out: 0 }, ms: {} };
+  var state = { key: "", data: null, models: [], ping: null, speed: null, speedSrc: "", sess: { in: 0, out: 0 }, ms: {}, prev: {}, tilesShown: false };
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
@@ -114,6 +114,19 @@
   }
 
   // ---------- rendering ----------
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Numbers tick from their old value to the new one (so after a chat they count up instead of jumping).
+  function countUp(el, to, f, from) {
+    el.__a = (el.__a || 0) + 1; var id = el.__a;
+    if (reduced || from === to || !isFinite(from)) { el.textContent = f(to); return; }
+    var t0 = null, dur = 900;
+    (function step(t) {
+      if (el.__a !== id) return; if (t0 == null) t0 = t;
+      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = f(from + (to - from) * e); if (k < 1) requestAnimationFrame(step);
+    })(performance.now());
+  }
+  function tick(el, key, to, f) { countUp(el, to, f, state.prev[key] != null ? state.prev[key] : 0); state.prev[key] = to; }
   function donut(el, pctLeft) {
     var R = 46, C = 2 * Math.PI * R, off = C * (1 - Math.max(0, Math.min(100, pctLeft)) / 100);
     el.classList.toggle("low", pctLeft < 15);
@@ -133,7 +146,11 @@
     var d = document.createElement("div"); d.className = "tile a-" + (o.accent || "blue") + (o.tone ? " " + o.tone : "") + (o.wide ? " wide" : "") + (o.full ? " full" : "");
     d.innerHTML = '<span class="ti">' + svg(o.icon) + '</span><div class="tb"><div class="tl"></div><div class="tv"></div><div class="ts"></div></div>';
     d.querySelector(".tl").textContent = o.label; d.querySelector(".tv").textContent = o.value; d.querySelector(".ts").textContent = o.sub || "";
-    if (o.meter != null) { var m = document.createElement("div"); m.className = "meter"; m.innerHTML = "<i></i>"; m.firstChild.style.width = Math.max(0, Math.min(100, o.meter)) + "%"; d.querySelector(".tb").appendChild(m); }
+    if (o.meter != null) { var m = document.createElement("div"); m.className = "meter"; m.innerHTML = "<i></i>"; var fill = m.firstChild; fill.style.width = "0%"; d.querySelector(".tb").appendChild(m);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { fill.style.width = Math.max(0, Math.min(100, o.meter)) + "%"; }); }); }
+    if (o.num != null) tick(d.querySelector(".tv"), "t:" + o.label, o.num, o.f || fmt);
+    if (o.live) d.classList.add("live");
+    if (!state.tilesShown) { d.classList.add("enter"); d.style.setProperty("--i", o.idx || 0); }
     return d;
   }
   // Power = how fast the gateway answers. Source is the last model Test if there is one, otherwise the gateway ping.
@@ -148,33 +165,39 @@
     var sp = state.speed != null ? state.speed : state.ping, kind = state.speed != null ? "test" : "ping";
     var lvl = powerOf(sp, kind), cap = kind === "test" ? 8000 : 2000;
     var pr = cfg.PRICES[$("chatModel").value] || cfg.PRICES["deepseek-flash"];
-    box.appendChild(tile({ icon: "shield", label: "Status", accent: "green", value: data.active ? (days !== null && days <= 0 ? "Expired" : "Active") : "Disabled",
+    box.appendChild(tile({ idx: 0, live: okKey && data.active, icon: "shield", label: "Status", accent: "green", value: data.active ? (days !== null && days <= 0 ? "Expired" : "Active") : "Disabled",
       sub: state.ping != null ? "Gateway online" : "Gateway not checked", tone: okKey ? "ok" : "bad" }));
-    box.appendChild(tile({ icon: "power", label: "Power", accent: "amber", value: lvl[0] === "Not tested" ? "--" : lvl[0], tone: lvl[1] === "idle" ? "" : lvl[1],
+    box.appendChild(tile({ idx: 1, icon: "power", label: "Power", accent: "amber", value: lvl[0] === "Not tested" ? "--" : lvl[0], tone: lvl[1] === "idle" ? "" : lvl[1],
       sub: sp == null ? "Run a model test" : sp + " ms (" + (state.speedSrc || "gateway ping") + ")", meter: sp == null ? null : 100 - Math.min(sp, cap) / cap * 100 }));
-    box.appendChild(tile({ icon: "coin", label: "Credit left", accent: "sky", wide: true, value: usd(leftUsd), sub: "of " + usd(data.limitUsd) + " total", meter: data.limitUsd > 0 ? leftUsd / data.limitUsd * 100 : 0 }));
-    box.appendChild(tile({ icon: "download", label: "Input", accent: "teal", value: fmt(state.sess.in), sub: "tokens this visit · $" + pr.input + "/1M" }));
-    box.appendChild(tile({ icon: "upload", label: "Output", accent: "indigo", value: fmt(state.sess.out), sub: "tokens this visit · $" + pr.output + "/1M" }));
-    box.appendChild(tile({ icon: "activity", label: "Used", accent: "rose", value: fmt(used), sub: Math.round(pctUsed) + "% of " + fmt(limit) }));
-    box.appendChild(tile({ icon: "calendar", label: "Expires", accent: "orange", value: days === null ? "Never" : (days <= 0 ? "Expired" : days + " days"),
+    box.appendChild(tile({ idx: 2, num: leftUsd, f: usd, icon: "coin", label: "Credit left", accent: "sky", wide: true, value: usd(leftUsd), sub: "of " + usd(data.limitUsd) + " total", meter: data.limitUsd > 0 ? leftUsd / data.limitUsd * 100 : 0 }));
+    box.appendChild(tile({ idx: 3, num: state.sess.in, icon: "download", label: "Input", accent: "teal", value: fmt(state.sess.in), sub: "tokens this visit · $" + pr.input + "/1M" }));
+    box.appendChild(tile({ idx: 4, num: state.sess.out, icon: "upload", label: "Output", accent: "indigo", value: fmt(state.sess.out), sub: "tokens this visit · $" + pr.output + "/1M" }));
+    box.appendChild(tile({ idx: 5, num: used, icon: "activity", label: "Used", accent: "rose", value: fmt(used), sub: Math.round(pctUsed) + "% of " + fmt(limit) }));
+    box.appendChild(tile({ idx: 6, icon: "calendar", label: "Expires", accent: "orange", value: days === null ? "Never" : (days <= 0 ? "Expired" : days + " days"),
       sub: data.expires ? new Date(data.expires).toLocaleDateString() : "No expiry date", tone: days !== null && days <= 3 ? "warn" : "" }));
     var ids = state.models.length ? state.models : data.models;
-    box.appendChild(tile({ icon: "cube", label: "Models", accent: "violet", full: true, value: String(ids.length), sub: ids.join("  ·  ") }));
+    state.tilesShown = state.tilesShown; // (set below once the whole set is built)
+    box.appendChild(tile({ idx: 7, icon: "cube", label: "Models", accent: "violet", full: true, value: String(ids.length), sub: ids.join("  ·  ") }));
+    state.tilesShown = true;
   }
   function renderOverview(data) {
     var per = 1e6 / cfg.BASE_PRICE, limit = data.limitUsd * per, used = data.usedUsd * per, left = Math.max(limit - used, 0);
     var leftUsd = Math.max(data.limitUsd - data.usedUsd, 0), pct = limit > 0 ? left / limit * 100 : 0;
-    $("leftTokens").textContent = fmt(left); $("limitTokens").textContent = fmt(limit); $("usedTokens").textContent = fmt(used);
+    tick($("leftTokens"), "left", left, fmt); $("limitTokens").textContent = fmt(limit); $("usedTokens").textContent = fmt(used);
     $("leftUsd").textContent = "(about " + usd(leftUsd) + " of credit)";
     $("expires").textContent = data.expires ? new Date(data.expires).toLocaleDateString() : "Never";
     $("keyName").textContent = data.name || "";
     var chip = $("statusChip"); chip.textContent = data.active ? "Active" : "Disabled"; chip.classList.toggle("off", !data.active);
     donut($("donut1"), pct); renderTiles();
+    var hb = $("heroBar"); hb.style.width = "0%"; $("heroBarWrap").setAttribute("aria-valuenow", Math.round(pct)); $("heroBarWrap").classList.toggle("low", pct < 15);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { hb.style.width = pct.toFixed(1) + "%"; }); });
     $("emptyState").hidden = true; $("overviewData").hidden = false;
     // credit tab
     $("creditEmpty").hidden = true; $("creditData").hidden = false;
-    $("creditUsd").textContent = usd(leftUsd); $("creditPct").textContent = Math.round(pct) + "% of " + usd(data.limitUsd) + " left";
-    donut($("donut2"), pct); $("lowWarn").hidden = pct >= 15;
+    tick($("creditUsd"), "credit", leftUsd, usd); $("creditPct").textContent = Math.round(pct) + "% of " + usd(data.limitUsd) + " left";
+    donut($("donut2"), pct); $("lowWarn").hidden = pct >= 15; $("lowBar").hidden = pct >= 15;
+    $("topupMsg").textContent = "Hi! Please add credit to my GamePay API key named \"" + (data.name || "(no name)") + "\".\nCredit left: " + usd(leftUsd) + " (" + Math.round(pct) + "% of " + usd(data.limitUsd) + ")."
+      + (data.expires ? "\nExpires: " + new Date(data.expires).toLocaleDateString() : "") + "\nThank you!";
     var rw = $("runway"); rw.textContent = "";
     Object.keys(cfg.PRICES).forEach(function (m) {
       var p = cfg.PRICES[m], hi = leftUsd / Math.min(p.input, p.output) * 1e6, lo = leftUsd / Math.max(p.input, p.output) * 1e6;
@@ -246,21 +269,22 @@
     var btn = $("checkBtn"), key = state.key = $("keyInput").value.trim();
     $("error").hidden = true;
     if (!MOCK && !key) { fail("Please paste your API key first."); return; }
-    if (!quiet) { btn.disabled = true; btn.querySelector("span").textContent = "Checking..."; }
+    if (!quiet) { btn.disabled = true; btn.querySelector("span").textContent = "Checking..."; $("skel").hidden = false; $("emptyState").hidden = true; $("overviewData").hidden = true; }
     fetchUsage(key).then(function (d) {
-      state.data = d; renderOverview(d);
-      if (quiet) return; // after a model test only the numbers change; keep the test results on screen
+      state.data = d;
+      if (quiet) { renderOverview(d); return; } // after a model test / chat only the numbers change; keep what is on screen
+      // Ask for the model list first so the whole overview (including the Status tile) is drawn once and the numbers can animate.
       return fetchModels(key).then(function (m) {
-        state.models = m.ids; state.ping = m.ms; renderTiles(); var pc = $("pingChip");
+        state.models = m.ids; state.ping = m.ms; var pc = $("pingChip");
         pc.textContent = m.ms != null ? "gateway " + m.ms + " ms" : "gateway unreachable"; pc.className = "chip" + (m.ms != null ? "" : " off");
-        renderModels(); fillChatModels();
+        renderOverview(d); renderModels(); fillChatModels();
       });
     }).catch(function (err) {
       state.data = null; $("emptyState").hidden = false; $("overviewData").hidden = true; $("creditEmpty").hidden = false; $("creditData").hidden = true;
       fail(err.message === "BAD_KEY" ? "The gateway says this key is not valid. Check it and try again."
         : err.message === "NOT_CONFIGURED" ? "The gateway did not return balance info for this key. (Owner: open this page with ?debug=1.)"
         : "Could not check this key. Try again.");
-    }).then(function () { btn.disabled = false; btn.querySelector("span").textContent = "Check"; });
+    }).then(function () { $("skel").hidden = true; btn.disabled = false; btn.querySelector("span").textContent = "Check"; });
   }
 
   // ---------- chat ----------
@@ -343,12 +367,13 @@
     $("error").hidden = true; input.value = ""; input.style.height = "auto";
     chat.msgs.push({ role: "user", content: text }); bubble("user", text);
     var bot = bubble("bot", ""), think = null, textNode = document.createElement("span"), answer = "";
-    bot.innerHTML = '<span class="dots"></span>'; var started = false;
+    bot.innerHTML = '<span class="dots">Thinking</span>'; var started = false;
     chat.ctl = new AbortController(); setBusy(true);
     var onDelta = function (dl) {
+      // The model's reasoning (dl.reasoning_content) is deliberately ignored: only the final answer is shown.
+      if (!dl.content) return;
       if (!started) { bot.textContent = ""; bot.appendChild(textNode); started = true; }
-      if (dl.reasoning_content) { if (!think) { think = document.createElement("div"); think.className = "think"; bot.insertBefore(think, textNode); } think.textContent += dl.reasoning_content; }
-      if (dl.content) { answer += dl.content; textNode.textContent = answer; }
+      answer += dl.content; textNode.textContent = answer;
       window.scrollTo({ top: document.body.scrollHeight });
     };
     var history = chat.msgs.slice(-MAX_HISTORY), model = $("chatModel").value;
@@ -391,6 +416,13 @@
       setBtnIcon(b, "check"); setTimeout(function () { setBtnIcon(b, "copy"); }, 1400);
     }).catch(function () { b.textContent = "!"; });
   });
+  $("copyTopup").addEventListener("click", function () {
+    var b = this, label = b.querySelector("span");
+    (navigator.clipboard ? navigator.clipboard.writeText($("topupMsg").textContent) : Promise.reject())
+      .then(function () { label.textContent = "Copied"; setTimeout(function () { label.textContent = "Copy message"; }, 1600); })
+      .catch(function () { label.textContent = "Select the text and copy it"; });
+  });
+  $("lowBar").addEventListener("click", function () { document.querySelector('.nav button[data-tab="credit"]').click(); });
   $("nav").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-tab]"); if (!b) return;
     document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x === b); });
