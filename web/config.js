@@ -1,8 +1,16 @@
 // Public settings only. NEVER put keys or admin tokens in this file (the repo is public).
 window.GPH_CONFIG = {
-  // Gateway base URL (no trailing slash). Replace with the real one once the custom domain exists.
+  // Gateway base URL (no trailing slash). Replace with the custom domain once it exists.
   GATEWAY_URL: "https://new-api-production-6f0d.up.railway.app",
-  // 1 token of quota = this many USD when input and output are both priced at 1.2 USD per 1M tokens.
-  // So $1.2 of quota = 1,000,000 tokens (see notes/HANDOFF.md section 5).
-  USD_PER_MILLION_TOKENS: 1.2
+  // new-api: $1 = 500,000 quota units (notes/HANDOFF.md section 4).
+  QUOTA_PER_USD: 500000,
+  // Prices we charge, USD per 1M tokens (notes/HANDOFF.md section 4). flash is uniform on purpose,
+  // so $1.2 of quota = exactly 1,000,000 tokens.
+  PRICES: {
+    "deepseek-flash":  { input: 1.2,  output: 1.2 },
+    "deepseek-v4-pro": { input: 1.32, output: 3.96 }
+  },
+  BASE_PRICE: 1.2,
+  // Optional: a link members tap for more credit (Telegram / Messenger / email). Empty = button hidden.
+  CONTACT_URL: ""
 };
