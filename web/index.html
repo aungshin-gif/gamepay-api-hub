@@ -115,6 +115,18 @@
 
     <!-- Credit -->
     <section class="panel" id="tab-credit">
+      <div class="card redeem" id="redeemCard">
+        <div class="rhead">
+          <span class="gift" id="gift"><i data-icon="gift"></i></span>
+          <div><h2>Redeem a code</h2><p class="muted">Got a top-up code? Add it to your credit.</p></div>
+        </div>
+        <div class="row">
+          <input id="codeInput" type="text" name="gph-code" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" placeholder="Enter your code" aria-label="Top-up code">
+          <button type="button" class="primary" id="redeemBtn"><i data-icon="zap"></i><span>Redeem</span></button>
+        </div>
+        <p class="hint">Codes are case-sensitive and work once.</p>
+        <div class="rstage" id="rstage" hidden aria-live="polite"></div>
+      </div>
       <div class="card">
         <h2>Your credit</h2>
         <div id="creditEmpty" class="muted">Check your key first.</div>

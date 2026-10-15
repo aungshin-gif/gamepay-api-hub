@@ -33,6 +33,7 @@
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
     chevron: '<path d="M6 9l6 6 6-6"/>',
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    gift: '<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8C10 3 6 4 7 6.5 7.8 8 12 8 12 8zM12 8c2-5 6-4 5-1.5C16.2 8 12 8 12 8z"/>',
     download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/>',
     upload: '<path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 4h16"/>',
     play: '<path d="M7 4l13 8-13 8z"/>'
@@ -263,6 +264,47 @@
     });
   }
   function fail(msg) { var e = $("error"); e.textContent = msg; e.hidden = false; }
+
+
+  // ---------- redeem ----------
+  // redeemCode is the ONLY place that would talk to the gateway for redeeming. The real endpoint needs an account login,
+  // which this page cannot use yet (see notes/HANDOFF.md). So outside demo mode it hands the code to the gateway's own wallet page.
+  function redeemCode(code) {
+    if (MOCK) return new Promise(function (ok) { setTimeout(function () { ok({ ok: true, addedUsd: 0.6 }); }, 1300); });
+    var done = function () { window.open(cfg.WALLET_URL, "_blank", "noopener"); return { ok: null, manual: true }; };
+    return (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(done, function () { return Object.assign(done(), { copyFailed: true }); });
+  }
+  function confetti(box) {
+    if (reduced) return;
+    var cols = ["#4d6bfe", "#a78bfa", "#2dd4bf", "#fbbf24", "#fb7185", "#38bdf8"];
+    for (var i = 0; i < 30; i++) {
+      var p = document.createElement("i"), a = Math.random() * Math.PI * 2, r = 70 + Math.random() * 90;
+      p.style.setProperty("--dx", Math.round(Math.cos(a) * r) + "px"); p.style.setProperty("--dy", Math.round(Math.sin(a) * r - 30) + "px");
+      p.style.setProperty("--rot", Math.round(Math.random() * 720 - 360) + "deg"); p.style.background = cols[i % cols.length];
+      p.style.animationDelay = (Math.random() * 120) + "ms"; box.appendChild(p);
+    }
+  }
+  function stage(html) { var s = $("rstage"); s.hidden = false; s.innerHTML = html; return s; }
+  $("redeemBtn").addEventListener("click", function () {
+    var btn = this, code = $("codeInput").value.trim();
+    if (!code) { var s0 = stage('<p class="rmsg bad">Enter your code first.</p>'); $("codeInput").focus(); return; }
+    btn.disabled = true; $("gift").classList.add("shake");
+    stage('<div class="spin" aria-hidden="true"></div><p class="rmsg">Checking your code...</p>');
+    redeemCode(code).then(function (res) {
+      $("gift").classList.remove("shake");
+      if (res.manual) {
+        stage('<p class="rmsg">' + (res.copyFailed ? "Open the gateway wallet and paste your code there." : "Code copied.") + '</p>' +
+          '<ol class="steps"><li>The gateway opened in a new tab.</li><li>Log in, open <b>Wallet</b>, paste the code, tap <b>Redeem</b>.</li><li>Come back here and tap <b>Check</b> to see your new credit.</li></ol>');
+        return;
+      }
+      var perUsd = 1e6 / cfg.BASE_PRICE, s = stage('<div class="burst"></div><svg class="tick" viewBox="0 0 52 52" aria-hidden="true"><circle class="tc" cx="26" cy="26" r="24"/><path class="tp" d="M14 27l8 8 16-17"/></svg>' +
+        '<p class="ramt">+<span id="rAmt">$0.000</span></p><p class="rmsg ok">Credit added! About ' + fmt(res.addedUsd * perUsd) + ' tokens of flash.</p>');
+      confetti(s.querySelector(".burst")); countUp($("rAmt"), res.addedUsd, usd, 0);
+      if (state.data) { state.data.limitUsd += res.addedUsd; renderOverview(state.data); }
+      $("codeInput").value = "";
+    }).catch(function () { $("gift").classList.remove("shake"); stage('<p class="rmsg bad">Could not redeem. Try again.</p>'); })
+      .then(function () { btn.disabled = false; });
+  });
 
   // ---------- flow ----------
   function refresh(quiet) {
