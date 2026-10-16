@@ -52,10 +52,12 @@ pre.debug { margin: 0; padding: 12px; border-radius: 14px; background: #0f1b36; 
 .livedot { width: 10px; height: 10px; border-radius: 50%; background: #c5cbe0; display: inline-block; }
 .livedot.on { background: #22c55e; animation: ping 2s ease-out infinite; --glow: rgba(34, 197, 94, .5); } .livedot.off { background: #ef4444; }
 /* brand */
-.powered { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 8px 18px 8px 10px; width: fit-content; border: 1px solid var(--border); border-radius: 18px; background: #fff; color: var(--muted); box-shadow: 0 6px 18px rgba(77, 107, 254, .10); }
-.powered > div { display: grid; line-height: 1.2; } .powered span { font-size: 11.5px; } .powered b { color: var(--ink); font-size: 17px; letter-spacing: .2px; }
-.powered img { height: 40px; width: auto; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(77, 107, 254, .25)); }
-.olg img, .mlogo img, .mpl img, .powered img { mix-blend-mode: multiply; } /* the logo PNG has a white background */
+.powered { position: relative; display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 8px 20px 8px 12px; width: fit-content; border-radius: 20px; color: var(--muted);
+  background: linear-gradient(135deg, rgba(255, 255, 255, .92), rgba(238, 242, 255, .78)); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, .9); box-shadow: 0 0 0 1px rgba(77, 107, 254, .14), 0 10px 26px rgba(77, 107, 254, .16), 0 1px 0 #fff inset; }
+.powered::before { content: ""; position: absolute; left: 6px; top: 50%; width: 52px; height: 52px; transform: translateY(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(77, 107, 254, .22), transparent 70%); pointer-events: none; }
+.powered > div { display: grid; line-height: 1.2; position: relative; } .powered span { font-size: 11.5px; letter-spacing: .3px; } .powered b { color: var(--ink); font-size: 17px; letter-spacing: .2px; }
+.powered img { position: relative; height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(77, 107, 254, .35)); }
 /* key tab */
 .hero { position: relative; overflow: hidden; }
 .hero::after { content: ""; position: absolute; right: -18px; top: -14px; width: 190px; height: 140px; background: url(assets/deepseek.png) no-repeat center / contain; opacity: .07; pointer-events: none; }
