@@ -376,11 +376,21 @@
       });
   }
   function setBusy(b) { chat.busy = b; var btn = $("chatSend"); btn.innerHTML = svg(b ? "stop" : "send"); btn.setAttribute("aria-label", b ? "Stop" : "Send"); }
+  // The key box lives on the My key tab; Chat shows a short reminder (with a shortcut) until a key has been entered.
+  function hasKey() { return !!(state.key || $("keyInput").value.trim()); }
+  function syncChatKeyNote() { $("chatNeedKey").hidden = MOCK || hasKey(); }
+  function showTab(name) {
+    document.body.setAttribute("data-tab", name);
+    document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-tab") === name); });
+    document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + name); });
+    if (name === "chat") syncChatKeyNote();
+    window.scrollTo(0, 0);
+  }
   function sendChat() {
     if (chat.busy) { if (chat.ctl) chat.ctl.abort(); return; }
     var input = $("chatInput"), text = input.value.trim(), key = state.key || $("keyInput").value.trim(), imgs = chat.files.slice();
     if (!text && !imgs.length) return;
-    if (!MOCK && !key) { fail("Paste your API key above first."); return; }
+    if (!MOCK && !key) { syncChatKeyNote(); return; }
     $("error").hidden = true; input.value = ""; input.style.height = "auto"; chat.files = []; renderAttach();
     chat.msgs.push({ role: "user", text: text, images: imgs }); bubble("user", text, imgs);
     var bot = bubble("bot", "", null), textNode = document.createElement("span"), answer = "", started = false, model = $("chatModel").value;
@@ -473,9 +483,8 @@
   });
   $("nav").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-tab]"); if (!b) return;
-    document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x === b); });
-    document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + b.getAttribute("data-tab")); });
-    window.scrollTo(0, 0);
+    showTab(b.getAttribute("data-tab"));
   });
-  loadChat(); fillChatModels(); paintIcons();
+  $("goKey").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
+  document.body.setAttribute("data-tab", "key"); loadChat(); fillChatModels(); paintIcons();
 })();

@@ -60,6 +60,14 @@
 
     <!-- Chat -->
     <section class="panel" id="tab-chat">
+      <div class="card chatintro" role="note" aria-label="Chat supports DeepSeek and OpenAI">
+        <div class="orbit" aria-hidden="true"><i class="ring r1"></i><i class="ring r2"></i><i class="ring r3"></i><i class="core"></i></div>
+        <div class="cintro-tx">
+          <b>Chat supports</b>
+          <div class="sups"><span class="sup"><img src="assets/deepseek.png" alt="" height="18">DeepSeek</span><span class="sup"><img src="assets/openai-white.png" alt="" height="18">OpenAI</span></div>
+          <i class="glline" aria-hidden="true"></i>
+        </div>
+      </div>
       <div class="card chatcard">
         <div class="top">
           <h2>Chat</h2>
@@ -75,6 +83,7 @@
         <div class="msgs" id="msgs" aria-live="polite">
           <p class="muted" id="chatEmpty">Ask anything. Your chat text is kept on this device only (the bin button deletes it). Pictures are never saved. Longer chats use more tokens because earlier messages are sent each time.</p>
         </div>
+        <p class="notice needkey" id="chatNeedKey" hidden><span>Add your key on the My key tab first.</span><button type="button" class="small" id="goKey">Open My key</button></p>
         <div class="attach-row" id="attachRow" hidden></div>
         <p class="warn" id="imgNote" hidden><i data-icon="alert"></i><span>DeepSeek models may not read pictures. If you get an error, switch to a model that supports images.</span></p>
         <div class="composer">
