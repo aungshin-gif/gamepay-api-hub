@@ -218,3 +218,36 @@ If the usage page grows into a real app (backend, build step), move it to its ow
 - Not verified: pictures with DeepSeek models (may not be supported), OpenAI models through the gateway (no channel yet; their
   prices must be set in the gateway and in `web/config.js` `PRICES`), `max_completion_tokens` for the Test button on non-DeepSeek models.
 - The chat hides the model's reasoning (`reasoning_content`) on purpose; those tokens are still billed.
+
+
+---
+
+## Update 2026-10-16 (late): state of `web/` and how to continue
+
+**Live site**: https://aungshin-gif.github.io/gamepay-api-hub/ (GitHub Pages, deploys from `main`, root `index.html` redirects to `web/`).
+Repo is public on purpose (free Pages). **Never commit keys, passwords, admin tokens or the gateway admin login.**
+
+**What `web/` is now**: a key-based, read-mostly dashboard + chat for the gateway. No accounts, no credit, no redeem.
+- Tabs in this order: **My key** (default) · **Chat** · **Models** · **Guide**.
+- **Models**: live ping (re-check about every 60 s), two-column grid of model boxes (square at 481px and up, grow to fit content on phones), Power / Input / Output / Test.
+- **Chat**: streaming; reasoning hidden; small model menu under the button; up to 3 pictures (shrunk in the browser, only the newest picture is sent, never stored); chat text saved in `localStorage` only; Clear deletes it.
+- **Powered by**: top-right on phones, hidden until a key is checked, one badge per provider on that key, providers listed in `POWERED_HIDE` (now `openai`) are skipped.
+- Settings live in `web/config.js` (gateway URL, prices, model tags, `POWERED_HIDE`, `LIVE_EVERY_MS`). Gateway calls are only in `web/app.js` (`fetchUsage`, `fetchModels`, `testModel`, `streamReal`).
+- Demo with fake numbers: add `?mock=1`. Debug trace of gateway answers: `?debug=1`.
+
+**Confirmed with the real gateway**: `/api/usage/token/`, `/v1/models`, chat streaming, open CORS.
+**Not verified (do not assume)**: pictures with DeepSeek models; any OpenAI channel (none exists; prices unset); `max_completion_tokens` in the Test call for non-DeepSeek models; the gateway's redeem / wallet URL (owner could not find Redeem in a test account); gateway admin API for changing a key's quota; DeepSeek's resale terms (page could not be opened); a per-model usage / uptime history (would need a log endpoint or server-side storage).
+
+**Decisions already made by the owner**
+- Credit / redeem / top-up were removed ("it made everything messy"). Members are not given accounts on this page. If wanted later, accounts, codes and key creation use the **gateway's own console** (new-api), not a custom system.
+- Not reselling. Giveaway / own use. Re-read OpenAI's and DeepSeek's terms before changing that.
+- The owner asked for: no AI reasoning shown, no OpenAI badge, My key first, Models third, two model boxes side by side on phones, flat (not glossy) buttons.
+
+**Still open for the owner**: security clean-up (old DeepSeek key, the test key pasted in chat, close public sign-up, 2FA, DeepSeek balance alert), Railway usage limit, optional custom domain, an OpenAI channel + prices, an OpenAI logo file if wanted (none supplied).
+
+**Working notes for the next AI**
+- "Pr and merge (ur self)" = open a PR into `main` and squash-merge it. Without "Pr", only commit and push.
+- Before restarting the branch from `main`, run `git log origin/main..HEAD` and make sure nothing unmerged is lost (a reset once dropped a commit; it was recovered with `git cherry-pick`).
+- Push with `--force-with-lease=<branch>:<sha-from-ls-remote>` because the branch is reset after each squash merge. The stop hook may say "unpushed" when the local remote-tracking ref is missing: confirm `git ls-remote` equals `HEAD`, then `git update-ref refs/remotes/origin/<branch> HEAD`. The hook can take over 40 s; give it 110 s.
+- Test with Playwright (in `/opt/node-tools`, Chromium in `/opt/pw-browsers`) against `python3 -m http.server`, stubbing the gateway with `page.route`. Test at 320, 390, 600 and 820 px, look at the screenshots, and say what could not be checked (real-device look, frame rate, Myanmar font: the sandbox has none).
+- **Reply in Burmese, always, including when answering automated task notifications** (a few replies once slipped into Japanese by mistake).
