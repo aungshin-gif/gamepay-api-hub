@@ -130,8 +130,8 @@ pre.snip { flex: 1; min-width: 0; margin: 0; padding: 12px; border-radius: 14px;
 .mbox::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--a1), var(--a2)); }
 .mbox > * { position: relative; z-index: 1; }
 .mhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.mlogo { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: #fff; border: 1px solid var(--border); box-shadow: 0 4px 10px var(--glow); flex: none; }
-.mlogo img, .olg img { width: auto; max-width: 70%; max-height: 70%; object-fit: contain; }
+.mlogo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(180deg, #fff, #f9f9ff); border: 1px solid var(--border); box-shadow: 0 1px 0 #fff inset, 0 4px 12px var(--glow); flex: none; }
+.mlogo img, .olg img { width: auto; max-width: 75%; max-height: 75%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(31, 41, 90, .08)); }
 .mname { font-size: 15px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; } .mtag { font-size: 12px; color: var(--muted); margin-top: -3px; }
 .io { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .io > div { display: grid; gap: 0; padding: 6px 9px; border-radius: 11px; background: #f4f5fc; border: 1px solid #eceefa; min-width: 0; }
@@ -294,16 +294,16 @@ body.noscroll { overflow: hidden; }
 
 /* Picture mode inside Chat */
 .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 16px; background: var(--mist); border: 1px solid var(--border); justify-self: start; }
-.seg button { padding: 7px 14px; border-radius: 12px; background: transparent; color: var(--muted) !important; font-weight: 700; font-size: 14px; }
+.seg button { padding: 7px 14px; border-radius: 12px; background: transparent; color: var(--muted) !important; font-weight: 700; font-size: 14px; transition: background .15s ease, color .15s ease; }
 .seg button.on { background: #fff; color: var(--blue-deep) !important; box-shadow: 0 1px 0 #fff inset, 0 2px 8px rgba(77, 107, 254, .16); }
-.imgpane { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.imgpane { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px; border-radius: 18px; background: linear-gradient(135deg, rgba(143, 114, 251, .04), rgba(77, 107, 254, .04)); border: 1px solid #f0ebff; animation: fadeUp .25s ease both; }
 .imgrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .sel { display: grid; gap: 3px; font-weight: 600; } .sel select { font: inherit; color: var(--ink); padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border); background: #fff; max-width: 100%; }
 .imgpane textarea { width: 100%; font: inherit; color: var(--ink); padding: 12px 14px; border-radius: 16px; border: 1px solid var(--border); background: #fff; resize: vertical; min-height: 84px; }
 .imgpane .primary { height: 46px; border-radius: 14px; padding: 0 18px; }
 .linkbtn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 14px; text-decoration: none; }
-.imgout { min-height: 120px; display: grid; place-items: center; text-align: center; border-radius: 18px; background: #f5f7ff; border: 1px dashed #d6defb; padding: 10px; }
-.imgout img { max-width: 100%; border-radius: 14px; border: 1px solid var(--border); display: block; }
+.imgout { min-height: 120px; max-height: 600px; overflow: hidden; display: grid; place-items: center; text-align: center; border-radius: 18px; background: #f5f7ff; border: 1px dashed #d6defb; padding: 10px; }
+.imgout img { max-width: 100%; border-radius: 14px; border: 1px solid var(--border); display: block; box-shadow: 0 4px 16px rgba(98, 49, 200, 0.08); }
 .imgout .error { width: 100%; text-align: left; }
 .chatcard[data-mode="image"] .msgs, .chatcard[data-mode="image"] .composer, .chatcard[data-mode="image"] .attach-row, .chatcard[data-mode="image"] #imgNote, .chatcard[data-mode="image"] .top .right { display: none; }
 @media (max-width: 360px) { .iov { font-size: 11.5px; } .mname { font-size: 14px; } .iol { font-size: 9.5px; } }
