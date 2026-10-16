@@ -9,27 +9,28 @@
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
-    cube: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 12l9-5M12 12v10M12 12L3 7"/>',
-    chat: '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/>',
-    book: '<path d="M4 5a1 1 0 0 1 1-1h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H5a1 1 0 0 1-1-1z"/><path d="M20 5a1 1 0 0 0-1-1h-6M20 5v12a1 1 0 0 1-1 1h-6"/>',
-    key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/>',
-    eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    cube: '<path class="f" d="M12 2.8l8 4.4v9.6l-8 4.4-8-4.4V7.2z"/><path d="M12 2.8l8 4.4v9.6l-8 4.4-8-4.4V7.2z"/><path d="M4 7.2l8 4.4 8-4.4M12 11.6v9.6"/>',
+    chat: '<path class="f" d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/>',
+    book: '<path class="f" d="M12 7C10.4 5.5 7.6 4.7 3.5 5v13c4.1-.3 6.9.4 8.5 2z"/><path class="f" d="M12 7c1.6-1.5 4.4-2.3 8.5-2v13c-4.1-.3-6.9.4-8.5 2z"/><path d="M12 7C10.4 5.5 7.6 4.7 3.5 5v13c4.1-.3 6.9.4 8.5 2z"/><path d="M12 7c1.6-1.5 4.4-2.3 8.5-2v13c-4.1-.3-6.9.4-8.5 2z"/><path d="M6.5 9.4c1.4 0 2.7.3 3.7.9M6.5 12.6c1.4 0 2.7.3 3.7.9M17.5 9.4c-1.4 0-2.7.3-3.7.9M17.5 12.6c-1.4 0-2.7.3-3.7.9"/>',
+    key: '<circle class="f" cx="8.2" cy="8.2" r="5.4"/><circle cx="8.2" cy="8.2" r="5.4"/><circle cx="8.2" cy="8.2" r="1.9"/><path d="M12.2 12.2L21 21M17 17l2.4-2.4M14.6 14.6l2-2"/>',
+    eye: '<path class="f" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     "eye-off": '<path d="M3 3l18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 7.5A17 17 0 0 0 2 12s4 7 10 7a9.6 9.6 0 0 0 4-.9"/>',
-    copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
-    check: '<path d="M4 12l5 5L20 6"/>',
-    refresh: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>',
-    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    activity: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
-    shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-    alert: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
-    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    copy: '<rect class="f" x="9" y="9" width="11.5" height="11.5" rx="2.5"/><rect x="9" y="9" width="11.5" height="11.5" rx="2.5"/><path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 5 4h8a1.5 1.5 0 0 1 1.5 1.5V6"/>',
+    check: '<path d="M4.5 12.5l4.8 4.8L19.5 7"/>',
+    refresh: '<path d="M20 12a8 8 0 0 1-13.7 5.6M4 12a8 8 0 0 1 13.7-5.6"/><path d="M18 3.5v3.8h-3.8M6 20.5v-3.8h3.8"/>',
+    clock: '<circle class="f" cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+    activity: '<path d="M2.5 12h4.2l2.6-7 5 14 2.6-7h4.6"/>',
+    shield: '<path class="f" d="M12 2.8l7.5 2.8v5.7c0 4.7-3.2 8.2-7.5 9.9-4.3-1.7-7.5-5.2-7.5-9.9V5.6z"/><path d="M12 2.8l7.5 2.8v5.7c0 4.7-3.2 8.2-7.5 9.9-4.3-1.7-7.5-5.2-7.5-9.9V5.6z"/><path d="M8.7 12.2l2.4 2.4 4.4-4.6"/>',
+    alert: '<path class="f" d="M12 3.5l9.5 16.5h-19z"/><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.2M12 17.3h.01"/>',
+    calendar: '<rect class="f" x="3.5" y="5" width="17" height="15.5" rx="3"/><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.4h.01M12 17.4h.01"/>',
     send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
-    trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    trash: '<path class="f" d="M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5z"/><path d="M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5"/><path d="M4 6.5h16M9.5 6.5V4.6a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.9M10 11v6M14 11v6"/>',
     image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',
     play: '<path d="M7 4l13 8-13 8z"/>',
     chevron: '<path d="M6 9l6 6 6-6"/>',
-    x: '<path d="M6 6l12 12M18 6L6 18"/>'
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    paste: '<rect class="f" x="5" y="4" width="14" height="17" rx="2.5"/><rect x="5" y="4" width="14" height="17" rx="2.5"/><rect x="9" y="2.5" width="6" height="4" rx="1.3"/><path d="M9 11.5h6M9 15.5h4"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
   function paintIcons(root) { (root || document).querySelectorAll("i[data-icon]").forEach(function (e) { e.outerHTML = svg(e.getAttribute("data-icon")); }); }
@@ -76,7 +77,7 @@
   }
   function fetchUsage(key) {
     if (MOCK) return new Promise(function (ok) { setTimeout(function () {
-      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-4o-mini"] }); }, 400); });
+      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"] }); }, 400); });
     trace = [];
     return tryTokenEndpoint(key).then(function (d) { return d || tryBillingEndpoints(key); }).then(function (d) {
       if (params.get("debug") === "1") { $("debug").hidden = false; $("debug").textContent = JSON.stringify(trace, null, 1); }
@@ -86,7 +87,7 @@
   }
   // OpenAI-standard model list (also used as the live ping).
   function fetchModels(key) {
-    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-4o-mini"], ms: 90 + Math.round(Math.random() * 60) });
+    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"], ms: 90 + Math.round(Math.random() * 60) });
     var t0 = performance.now();
     return fetch(cfg.GATEWAY_URL + "/v1/models", { headers: { Authorization: "Bearer " + key } })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -109,20 +110,21 @@
   function countUp(node, to, f, from) {
     node.__a = (node.__a || 0) + 1; var id = node.__a;
     if (reduced || from === to || !isFinite(from)) { node.textContent = f(to); return; }
-    var t0 = null, dur = 900;
+    var t0 = null, dur = 2200;
     (function step(t) {
       if (node.__a !== id) return; if (t0 == null) t0 = t;
-      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      var k = Math.min(1, (t - t0) / dur), e = .5 - .5 * Math.cos(Math.PI * k); // gentle start and finish
       node.textContent = f(from + (to - from) * e); if (k < 1) requestAnimationFrame(step);
     })(performance.now());
   }
   function tick(node, key, to, f) { countUp(node, to, f, state.prev[key] != null ? state.prev[key] : 0); state.prev[key] = to; }
   function logoImg(h, src) { var i = document.createElement("img"); i.src = src; i.alt = ""; i.height = h; i.addEventListener("error", function () { i.hidden = true; }); return i; }
-  // Which company a model id belongs to. Only DeepSeek has a logo file; other providers get a neutral letter badge.
+  // Which company a model id belongs to. DeepSeek and OpenAI have logo files; other providers get a neutral letter badge.
+  // OpenAI: GPT-5 models use the green logo; GPT-6 (and any other OpenAI model) use the white one.
   function providerOf(id) {
     id = String(id).toLowerCase();
     if (/^deepseek/.test(id)) return { key: "deepseek", name: "DeepSeek", accent: "sky", logo: "assets/deepseek.png" };
-    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: null };
+    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
     return { key: "other", name: "Other", accent: "violet", logo: null };
   }
   function logoFor(m, h) {
@@ -441,6 +443,26 @@
     if (canMask) { show = keyBox.classList.contains("masked"); keyBox.classList.toggle("masked", !show); }
     else { show = keyBox.type === "password"; keyBox.type = show ? "text" : "password"; }
     setBtnIcon(this, show ? "eye-off" : "eye");
+  });
+  // Paste: read the clipboard into the key box (the browser may ask permission the first time). Does not check the key by itself.
+  var PASTE_HELP = "Could not read the clipboard. Press and hold inside the key box and choose Paste.";
+  $("pasteBtn").addEventListener("click", function () {
+    var b = this, label = b.querySelector("span");
+    if (!navigator.clipboard || !navigator.clipboard.readText) { fail(PASTE_HELP); return; }
+    navigator.clipboard.readText().then(function (t) {
+      t = (t || "").trim();
+      if (!t) { fail("The clipboard is empty. Copy your key first."); return; }
+      keyBox.value = t; $("error").hidden = true;
+      label.textContent = "Pasted"; setTimeout(function () { label.textContent = "Paste"; }, 1400);
+    }).catch(function () { fail(PASTE_HELP); });
+  });
+  // Clear: forget the key and everything that was loaded with it. Chat text on this device is left alone (use Clear chat for that).
+  $("clearKeyBtn").addEventListener("click", function () {
+    keyBox.value = ""; state.key = ""; state.data = null; state.models = []; state.ms = {}; state.prev = {};
+    if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
+    updatePowered(); fillChatModels();
+    $("emptyState").hidden = false; $("keyData").hidden = true; $("modelList").textContent = ""; $("modelHint").hidden = true; $("error").hidden = true;
+    keyBox.focus();
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-copy],[data-copytext]"); if (!b) return;

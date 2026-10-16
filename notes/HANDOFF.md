@@ -251,3 +251,29 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - Push with `--force-with-lease=<branch>:<sha-from-ls-remote>` because the branch is reset after each squash merge. The stop hook may say "unpushed" when the local remote-tracking ref is missing: confirm `git ls-remote` equals `HEAD`, then `git update-ref refs/remotes/origin/<branch> HEAD`. The hook can take over 40 s; give it 110 s.
 - Test with Playwright (in `/opt/node-tools`, Chromium in `/opt/pw-browsers`) against `python3 -m http.server`, stubbing the gateway with `page.route`. Test at 320, 390, 600 and 820 px, look at the screenshots, and say what could not be checked (real-device look, frame rate, Myanmar font: the sandbox has none).
 - **Reply in Burmese, always, including when answering automated task notifications** (a few replies once slipped into Japanese by mistake).
+
+## Update 2026-10-16 (OpenAI logos)
+
+- Owner supplied two OpenAI logo files; they are in `web/assets/` as `openai-white.png` (black mark on white) and `openai-green.png` (white mark on green tile), resized to 160 px.
+- `providerOf()` in `web/app.js`: model ids starting `gpt-5` / `gpt5` get the green logo; every other OpenAI id (GPT-6, o-series, etc.) gets the white one. The mapping is a guess from the owner's words ("6 -> white, 5 -> green"), so ask if it should change.
+- Logos show in the Models boxes, the Chat model menu and the picker. The header "Powered by" badge still hides OpenAI (`POWERED_HIDE`), as the owner asked earlier.
+- Demo mode (`?mock=1`) now lists `gpt-6-luna` and `gpt-5.4-nano` so the logos can be previewed. No OpenAI prices were added; set them in the gateway and `PRICES` once a channel exists (never zero).
+- Checked with Playwright at 390 and 820 px in demo mode: logos load, no console errors. Not checked: real device look, and real OpenAI model ids from the gateway (no channel yet).
+
+## Update 2026-10-16 (key buttons and button texture)
+
+- **My key** card now has a second row: **Paste** (reads the clipboard into the key box, needs the browser's clipboard permission, does not check the key by itself), **Clear** (empties the key box, stops the live ping, hides the key data and model boxes; chat text on the device is kept) and **Check**. The "Check" label is no longer hidden on phones.
+- All buttons got a matte, soft-touch look (faint top light, thin darker bottom edge, soft shadow, pressed buttons sink in). It is still not glossy, in line with the earlier "flat, not glossy" request; tell the owner if they want it flatter or richer.
+- Checked with Playwright (demo mode) at 320, 390 and 820 px: paste, clear, empty clipboard message, no console errors, no horizontal scroll. Not checked: real clipboard permission prompt on the owner's tablet, real device look.
+
+## Update 2026-10-16 (icons)
+
+- Icons in `web/app.js` (`ICONS`) were redrawn as soft two-tone icons: a faint filled shape (class `f`, styled in `styles.css` as `svg.ic .f`) under a clean 1.8 px outline. Redrawn: key, eye, copy, check, refresh, clock, shield, alert, calendar, activity, cube, trash, paste. Others (chat, book, image, send, stop, play, chevron, x, eye-off) are unchanged.
+- The key icon next to "Your API key" is larger and blue. Checked at 320/390 px in demo mode (no overflow, no console errors); real device look not checked.
+- Also redrawn the same way: the Guide book icon (open book with text lines) and the Chat bubble, so all four nav icons match.
+- The key icon itself was redesigned (round bow with a ring, diagonal shaft, two teeth). Owner asked for a different key shape, not just new styling; ask if they want another shape (for example an upright classic key).
+
+## Update 2026-10-16 (slower status animations)
+
+- Owner asked for slower, calmer status animations. Count-up numbers now take 2.2 s with a gentle sine ease (`countUp` in `web/app.js`); the ring fills in 2 s, the token bar in 2.2 s, the tiles rise in 1.1 s one after another (160 ms apart), the bar's shimmer loop is 5 s and the "live" pulses are 3.6 to 4 s. All in `web/styles.css`. Tab switching and button presses were not slowed. Reduced-motion users still get no animation.
+- Checked in demo mode by sampling the numbers over time (smooth 0.4 s to 2.8 s). Not checked: how it feels on the real tablet; say if it should be slower or faster.
