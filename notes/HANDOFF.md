@@ -201,3 +201,20 @@ If the usage page grows into a real app (backend, build step), move it to its ow
 - How many team members, and what quota each (300K / 500K / 1M)?
 - Railway trial vs staying on Railway after the trial?
 - Which "template" meaning for the book (Railway template, prompt templates, CLAUDE.md memory file, or all)?
+
+---
+
+## Update 2026-10-16: dashboard direction (read this before changing `web/`)
+
+- **Credit / redeem / top-up were removed from the dashboard on the owner's decision** ("it made everything messy"). The page is now a
+  **live model-status page + chat + key viewer**. Accounts, codes and key creation, if wanted later, are done in the Gateway's own
+  console (new-api has Wallet / Redemption Codes / API keys). A custom account system (e.g. Supabase + an Edge Function holding a
+  gateway admin token) was discussed and judged big and risky; nothing was built. The gateway admin API for changing a key's quota
+  was never verified.
+- `web/` pages: **Models** (default: live gateway ping, one square box per model with Power / Input / Output / Test), **Chat**
+  (streaming, small model menu under the button, picture upload, text history kept in `localStorage` on the device only,
+  pictures never stored), **My key** (tokens left, status, expiry), **Guide**.
+- Facts confirmed with the real gateway: `/api/usage/token/` works with a key; `/v1/models` works; chat streaming works; CORS is open.
+- Not verified: pictures with DeepSeek models (may not be supported), OpenAI models through the gateway (no channel yet; their
+  prices must be set in the gateway and in `web/config.js` `PRICES`), `max_completion_tokens` for the Test button on non-DeepSeek models.
+- The chat hides the model's reasoning (`reasoning_content`) on purpose; those tokens are still billed.

@@ -19,10 +19,9 @@
     </div>
     <div class="powered"><img id="dsLogo" src="assets/deepseek.png" alt="DeepSeek logo" height="40"><div><span>Powered by</span><b id="poweredNames">DeepSeek</b></div></div>
     <nav class="nav" id="nav" aria-label="Sections">
-      <button type="button" data-tab="overview" class="on"><i data-icon="home"></i><span>Overview</span></button>
+      <button type="button" data-tab="models" class="on"><i data-icon="cube"></i><span>Models</span></button>
       <button type="button" data-tab="chat"><i data-icon="chat"></i><span>Chat</span></button>
-      <button type="button" data-tab="models"><i data-icon="cube"></i><span>Models</span></button>
-      <button type="button" data-tab="credit"><i data-icon="wallet"></i><span>Credit</span></button>
+      <button type="button" data-tab="key"><i data-icon="key"></i><span>My key</span></button>
       <button type="button" data-tab="guide"><i data-icon="book"></i><span>Guide</span></button>
     </nav>
   </aside>
@@ -42,45 +41,15 @@
     <p class="error" id="error" role="alert" hidden></p>
     <pre class="debug" id="debug" hidden></pre>
 
-    <!-- Overview -->
-    <section class="panel on" id="tab-overview">
-      <div class="card empty" id="emptyState">
-        <i data-icon="shield" class="big"></i>
-        <h2>Paste your key to begin</h2>
-        <p class="muted">You will see your credit, usage, models and how to connect your app.</p>
+    <!-- Models: the main page -->
+    <section class="panel on" id="tab-models">
+      <div class="card">
+        <div class="top"><h2><span class="livedot" id="liveDot"></span>Live status</h2><span class="chip idle" id="pingChip">not checked</span></div>
+        <p class="muted" id="liveInfo">Paste your key above and tap Check to see which models are live.</p>
       </div>
-      <div class="skel" id="skel" hidden aria-hidden="true">
-        <div class="sk sk-hero"></div>
-        <div class="sk-grid"><div class="sk sk-sq"></div><div class="sk sk-sq"></div><div class="sk sk-wide"></div><div class="sk sk-sq"></div><div class="sk sk-sq"></div></div>
-      </div>
-      <div id="overviewData" hidden>
-        <button type="button" class="lowbar" id="lowBar" hidden><i data-icon="alert"></i><span>Credit is running low. Tap to ask for more.</span></button>
-        <div class="card hero">
-          <div class="top"><span class="chip" id="statusChip">Active</span><span class="muted" id="keyName"></span></div>
-          <div class="hero-grid">
-            <div class="donut" id="donut1"></div>
-            <div>
-              <span class="muted">Tokens left</span>
-              <strong class="big-num" id="leftTokens">0</strong>
-              <span class="muted" id="leftUsd"></span>
-            </div>
-          </div>
-          <div class="herobar" role="progressbar" aria-label="Credit left" aria-valuemin="0" aria-valuemax="100" id="heroBarWrap"><i id="heroBar"></i></div>
-          <dl class="stats">
-            <div><dt><i data-icon="zap"></i> Limit</dt><dd id="limitTokens">0</dd></div>
-            <div><dt><i data-icon="activity"></i> Used</dt><dd id="usedTokens">0</dd></div>
-            <div><dt><i data-icon="clock"></i> Expires</dt><dd id="expires">Never</dd></div>
-          </dl>
-        </div>
-        <div class="tiles" id="tiles"></div>
-        <div class="card">
-          <h2>Use it in your app</h2>
-          <p class="muted">Base URL</p>
-          <div class="row"><code id="baseUrl"></code><button type="button" class="icon-btn" data-copy="baseUrl" aria-label="Copy base URL"><i data-icon="copy"></i></button></div>
-          <p class="muted">Recommended model</p>
-          <div class="row"><code>deepseek-flash</code><button type="button" class="icon-btn" data-copytext="deepseek-flash" aria-label="Copy model"><i data-icon="copy"></i></button></div>
-        </div>
-      </div>
+      <div class="skel" id="skel" hidden aria-hidden="true"><div class="sk sk-sq"></div><div class="sk sk-sq"></div></div>
+      <div id="modelList" class="list"></div>
+      <p class="hint center" id="modelHint" hidden>Prices are USD per 1M tokens. "Test" sends a tiny message (a few tokens) to measure real speed. Token counts are from your Chat during this visit.</p>
     </section>
 
     <!-- Chat -->
@@ -89,68 +58,55 @@
         <div class="top">
           <h2>Chat</h2>
           <div class="right">
-            <button type="button" class="mpick" id="modelBtn" aria-haspopup="listbox" aria-expanded="false"><span class="mpl" id="modelBtnLogo"></span><span id="modelBtnName">deepseek-flash</span><i data-icon="chevron"></i></button>
+            <div class="pickwrap" id="pickwrap">
+              <button type="button" class="mpick" id="modelBtn" aria-haspopup="listbox" aria-expanded="false"><span class="mpl" id="modelBtnLogo"></span><span id="modelBtnName">deepseek-flash</span><i data-icon="chevron"></i></button>
+              <div class="pop" id="pop" role="listbox" aria-label="Choose a model" hidden></div>
+            </div>
             <select id="chatModel" hidden aria-hidden="true"></select>
-            <button type="button" class="icon-btn" id="chatClear" aria-label="Clear chat"><i data-icon="trash"></i></button>
+            <button type="button" class="icon-btn" id="chatClear" aria-label="Clear chat" title="Clear chat"><i data-icon="trash"></i></button>
           </div>
         </div>
         <div class="msgs" id="msgs" aria-live="polite">
-          <p class="muted" id="chatEmpty">Ask anything. Messages stay on this page only and are cleared when you leave. Longer chats use more tokens because the history is sent each time.</p>
+          <p class="muted" id="chatEmpty">Ask anything. Your chat text is kept on this device only (Clear deletes it). Pictures are never saved. Longer chats use more tokens because earlier messages are sent each time.</p>
         </div>
+        <div class="attach-row" id="attachRow" hidden></div>
+        <p class="warn" id="imgNote" hidden><i data-icon="alert"></i><span>DeepSeek models may not read pictures. If you get an error, switch to a model that supports images.</span></p>
         <div class="composer">
-          <textarea id="chatInput" rows="1" placeholder="Message DeepSeek..." aria-label="Message"></textarea>
+          <button type="button" class="icon-btn round" id="attachBtn" aria-label="Attach picture" title="Attach picture"><i data-icon="image"></i></button>
+          <input type="file" id="fileInput" accept="image/*" multiple hidden>
+          <textarea id="chatInput" rows="1" placeholder="Message..." aria-label="Message"></textarea>
           <button type="button" class="primary round" id="chatSend" aria-label="Send"><i data-icon="send"></i></button>
         </div>
       </div>
     </section>
 
-    <!-- Models -->
-    <section class="panel" id="tab-models">
-      <div class="card">
-        <div class="top"><h2>Models and status</h2><span class="chip" id="pingChip">not checked</span></div>
-        <p class="muted">Prices are USD per 1M tokens. "Test" sends a tiny message (a few tokens) to measure real speed. Token counts are from your Chat during this visit.</p>
-        <div id="modelList" class="list"><p class="muted">Check your key first.</p></div>
+    <!-- My key -->
+    <section class="panel" id="tab-key">
+      <div class="card empty" id="emptyState">
+        <i data-icon="shield" class="big"></i>
+        <h2>Paste your key to begin</h2>
+        <p class="muted">You will see how much of your key is left.</p>
       </div>
-    </section>
-
-    <!-- Credit -->
-    <section class="panel" id="tab-credit">
-      <div class="card redeem" id="redeemCard">
-        <div class="rhead">
-          <span class="gift" id="gift"><i data-icon="gift"></i></span>
-          <div><h2>Redeem a code</h2><p class="muted">Got a top-up code? Add it to your credit.</p></div>
-        </div>
-        <div class="row">
-          <input id="codeInput" type="text" name="gph-code" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" placeholder="Enter your code" aria-label="Top-up code">
-          <button type="button" class="primary" id="redeemBtn"><i data-icon="zap"></i><span>Redeem</span></button>
-        </div>
-        <p class="hint">Codes are case-sensitive and work once.</p>
-        <div class="rstage" id="rstage" hidden aria-live="polite"></div>
-      </div>
-      <div class="card">
-        <h2>Your credit</h2>
-        <div id="creditEmpty" class="muted">Check your key first.</div>
-        <div id="creditData" hidden>
+      <div id="keyData" hidden>
+        <div class="card hero">
+          <div class="top"><span class="chip" id="statusChip">Active</span><span class="muted" id="keyName"></span></div>
           <div class="hero-grid">
-            <div class="donut" id="donut2"></div>
+            <div class="donut" id="donut1"></div>
             <div>
-              <span class="muted">Credit left</span>
-              <strong class="big-num" id="creditUsd">$0.00</strong>
-              <span class="muted" id="creditPct"></span>
+              <span class="muted">Tokens left</span>
+              <strong class="big-num" id="leftTokens">0</strong>
+              <span class="muted" id="leftNote"></span>
             </div>
           </div>
-          <p class="warn" id="lowWarn" hidden><i data-icon="alert"></i> Credit is running low.</p>
-          <h3>What your credit buys</h3>
-          <div id="runway" class="list"></div>
-          <div class="topup">
-            <h3>Need more credit?</h3>
-            <p class="muted">Credit is added by the admin. Copy this message and send it to them. It never contains your key.</p>
-            <pre class="snip" id="topupMsg"></pre>
-            <div class="row">
-              <button type="button" class="primary" id="copyTopup"><i data-icon="copy"></i><span>Copy message</span></button>
-              <a class="small linkbtn" id="contactBtn" href="#" target="_blank" rel="noopener" hidden><i data-icon="chat"></i><span>Open chat</span></a>
-            </div>
-          </div>
+          <div class="herobar" role="progressbar" aria-label="Tokens left" aria-valuemin="0" aria-valuemax="100" id="heroBarWrap"><i id="heroBar"></i></div>
+        </div>
+        <div class="tiles" id="tiles"></div>
+        <div class="card">
+          <h2>Use it in your app</h2>
+          <p class="muted">Base URL</p>
+          <div class="row"><code id="baseUrl"></code><button type="button" class="icon-btn" data-copy="baseUrl" aria-label="Copy base URL"><i data-icon="copy"></i></button></div>
+          <p class="muted">Recommended model</p>
+          <div class="row"><code>deepseek-flash</code><button type="button" class="icon-btn" data-copytext="deepseek-flash" aria-label="Copy model"><i data-icon="copy"></i></button></div>
         </div>
       </div>
     </section>
@@ -173,14 +129,6 @@
     </section>
     <p class="foot">Unofficial dashboard for a private gateway. Not affiliated with or endorsed by DeepSeek, OpenAI or any model provider.</p>
   </main>
-</div>
-<div class="sheet" id="sheet" hidden>
-  <div class="sheet-back" id="sheetBack"></div>
-  <div class="sheet-card" role="dialog" aria-modal="true" aria-label="Choose a model">
-    <div class="sheet-head"><b>Choose a model</b><button type="button" class="icon-btn" id="sheetClose" aria-label="Close"><i data-icon="x"></i></button></div>
-    <div class="sheet-list" id="sheetList" role="listbox"></div>
-    <p class="hint">Prices differ per model. Your credit is shared by all of them.</p>
-  </div>
 </div>
 <script src="config.js"></script>
 <script src="app.js"></script>
