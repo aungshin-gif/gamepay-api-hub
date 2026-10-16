@@ -5,7 +5,7 @@ window.GPH_CONFIG = {
   // new-api: $1 = 500,000 quota units (notes/HANDOFF.md section 4).
   QUOTA_PER_USD: 500000,
   // Prices we charge, USD per 1M tokens (notes/HANDOFF.md section 4). flash is uniform on purpose,
-  // so $1.2 of quota = exactly 1,000,000 tokens.
+  // so $1.2 of quota = exactly 1,000,000 flash tokens.
   PRICES: {
     "deepseek-flash":  { input: 1.2,  output: 1.2 },
     "deepseek-v4-pro": { input: 1.32, output: 3.96 }
@@ -16,8 +16,6 @@ window.GPH_CONFIG = {
     "deepseek-flash":  { tag: "Everyday · lowest price", accent: "sky" },
     "deepseek-v4-pro": { tag: "Advanced · higher price", accent: "violet" }
   },
-  // Optional: a link members tap for more credit (Telegram / Messenger / email). Empty = button hidden.
-  // Where members redeem codes today (log in, then Wallet). The in-page redeem is only a demo until the gateway API is confirmed.
-  WALLET_URL: "https://new-api-production-6f0d.up.railway.app",
-  CONTACT_URL: ""
+  // How often the Models tab re-checks the gateway while the page is open and visible.
+  LIVE_EVERY_MS: 60000
 };
