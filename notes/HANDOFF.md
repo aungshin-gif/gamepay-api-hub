@@ -277,3 +277,11 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 
 - Owner asked for slower, calmer status animations. Count-up numbers now take 2.2 s with a gentle sine ease (`countUp` in `web/app.js`); the ring fills in 2 s, the token bar in 2.2 s, the tiles rise in 1.1 s one after another (160 ms apart), the bar's shimmer loop is 5 s and the "live" pulses are 3.6 to 4 s. All in `web/styles.css`. Tab switching and button presses were not slowed. Reduced-motion users still get no animation.
 - Checked in demo mode by sampling the numbers over time (smooth 0.4 s to 2.8 s). Not checked: how it feels on the real tablet; say if it should be slower or faster.
+
+## Update 2026-10-16 (Chat tab layout, 3D intro, tap highlight)
+
+- The key box ("Your API key" card) is now hidden on the **Chat** tab (`body[data-tab="chat"] #keyCard` in `web/styles.css`; the tab name is set by `showTab()` in `web/app.js`). Chat moves to the top. If no key has been entered, Chat shows a short note with an "Open My key" button (`#chatNeedKey`) and does not send.
+- New intro card at the top of Chat: a slow 3D gyroscope made of three gradient-line rings (pure CSS, `.orbit`), diagonal gradient lines in the background, a moving gradient line under the text, and two chips "DeepSeek" and "OpenAI" (text: "Chat supports"). Animations switch off for reduced-motion users.
+- The big blue rectangle that flashed behind tapped buttons on the tablet was the browser's tap highlight. Fixed with `-webkit-tap-highlight-color: transparent` on `*`. Keyboard focus rings are unchanged.
+- Checked in demo and real (no key) mode at 390 px: no console errors, no horizontal scroll. Not checked on the real tablet.
+- Gateway now lists GPT models (`gpt-5.3-codex`, `gpt-5.5-pro`, `gpt-5.6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-6-astra`, `gpt-6-luna`, `sora-2-pro`). Their prices were NOT set in the gateway or in `web/config.js` when this was written. Plan agreed in chat: charge OpenAI list price (same idea as DeepSeek peak price), set in the gateway first, then copy the same numbers into `PRICES` here. Do not guess numbers; get them from the owner or the official OpenAI pricing page (not reachable from the sandbox). `sora-2-pro` is a video model, not token-priced: remove it from member keys.
