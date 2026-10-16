@@ -19,6 +19,7 @@ store stays untouched. Team giveaway / own use only: **not for resale** unless t
 ## Git / release workflow
 - Work on the branch the session assigns, commit clearly, push with `git push -u origin <branch>`.
 - **Do not open a PR unless the owner says "Pr"**. "Pr and merge" means: open a PR into `main` and squash-merge it. Pages deploys from `main`.
+- After a squash-merge the next PR conflicts: merge `origin/main` into the branch and keep our side (`git checkout --ours`); force-push and branch resets are denied by the permission classifier. Full recipe: last section of `notes/HANDOFF.md`.
 - Details for the next session (live URL, tabs, what is verified and what is not, git gotchas): the **last section of `notes/HANDOFF.md`**.
 
 ## Design language (dashboard)

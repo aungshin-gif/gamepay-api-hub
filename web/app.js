@@ -35,7 +35,8 @@
     code: '<path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5M13.5 5l-3 14"/>',
     terminal: '<rect class="f" x="3" y="4.5" width="18" height="15" rx="3"/><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M7.5 10l3 2.5-3 2.5M13 15h4"/>',
     bot: '<rect class="f" x="4" y="8" width="16" height="11.5" rx="3.2"/><rect x="4" y="8" width="16" height="11.5" rx="3.2"/><path d="M12 8V5M9 13.2h.01M15 13.2h.01M9.5 16.3h5"/><circle cx="12" cy="4" r="1"/>',
-    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    download: '<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
   function paintIcons(root) { (root || document).querySelectorAll("i[data-icon]").forEach(function (e) { e.outerHTML = svg(e.getAttribute("data-icon")); }); }
@@ -82,7 +83,7 @@
   }
   function fetchUsage(key) {
     if (MOCK) return new Promise(function (ok) { setTimeout(function () {
-      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"] }); }, 400); });
+      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano", "gpt-image-1"] }); }, 400); });
     trace = [];
     return tryTokenEndpoint(key).then(function (d) { return d || tryBillingEndpoints(key); }).then(function (d) {
       if (params.get("debug") === "1") { $("debug").hidden = false; $("debug").textContent = JSON.stringify(trace, null, 1); }
@@ -92,7 +93,7 @@
   }
   // OpenAI-standard model list (also used as the live ping).
   function fetchModels(key) {
-    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"], ms: 90 + Math.round(Math.random() * 60) });
+    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano", "gpt-image-1"], ms: 90 + Math.round(Math.random() * 60) });
     var t0 = performance.now();
     return fetch(cfg.GATEWAY_URL + "/v1/models", { headers: { Authorization: "Bearer " + key } })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -129,9 +130,11 @@
   function providerOf(id) {
     id = String(id).toLowerCase();
     if (/^deepseek/.test(id)) return { key: "deepseek", name: "DeepSeek", accent: "sky", logo: "assets/deepseek.png" };
-    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
+    if (/^(gpt|chatgpt|o\d|text-|davinci|codex|dall-?e|sora)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
     return { key: "other", name: "Other", accent: "violet", logo: null };
   }
+  // What a model is for: only "text" models can be used in the chat box and the Test button.
+  function kindOf(id) { id = String(id).toLowerCase(); return /image|dall-?e/.test(id) ? "image" : /sora|video/.test(id) ? "video" : "text"; }
   function logoFor(m, h) {
     var p = providerOf(m); if (p.logo) return logoImg(h, p.logo);
     var g = el("span", "glyph", p.name.charAt(0)); g.style.fontSize = Math.round(h * .62) + "px"; return g;
@@ -162,8 +165,31 @@
   function two(n) { return (n < 10 ? "0" : "") + n; }
 
   // ---------- Models tab (the main page) ----------
+  // ---------- gateway check history (kept on this device only) ----------
+  var HIST_KEY = "gph_ping_hist", HIST_MAX = 60, hist = [];
+  function loadHist() {
+    if (MOCK) { var t0 = Date.now(); for (var i = 0; i < 44; i++) hist.push([t0 - (44 - i) * 60000, i === 12 || i === 31 ? null : 90 + Math.round(Math.random() * 520)]); return; }
+    try { var j = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); if (Array.isArray(j)) hist = j.filter(function (r) { return Array.isArray(r) && r.length === 2; }).slice(-HIST_MAX); } catch (e) {}
+  }
+  function renderStrip() {
+    var box = $("pingStrip"); box.textContent = "";
+    for (var i = 0; i < HIST_MAX - hist.length; i++) box.appendChild(document.createElement("i"));
+    hist.forEach(function (r) {
+      var b = document.createElement("i"); b.className = "s-" + (r[1] == null ? "bad" : powerOf(r[1], "ping")[1]);
+      b.title = new Date(r[0]).toLocaleTimeString() + (r[1] == null ? " · unreachable" : " · " + r[1] + " ms"); box.appendChild(b);
+    });
+    var ok = hist.filter(function (r) { return r[1] != null; }).length;
+    $("lsAvail").textContent = hist.length ? (ok / hist.length * 100).toFixed(1) + "%" : "--";
+    $("lsCount").textContent = String(hist.length); $("lsPing").textContent = state.ping != null ? state.ping + " ms" : "--";
+  }
+  function pushPing(ms) {
+    hist.push([Date.now(), ms]); hist = hist.slice(-HIST_MAX);
+    if (!MOCK) { try { localStorage.setItem(HIST_KEY, JSON.stringify(hist)); } catch (e) {} }
+    renderStrip();
+  }
   function applyModels(m) {
     state.models = m.ids; state.ping = m.ms; state.lastAt = new Date();
+    pushPing(m.ms);
     var pc = $("pingChip"), pw = powerOf(m.ms, "ping");
     pc.textContent = m.ms != null ? "online · " + m.ms + " ms" : "unreachable"; pc.className = "chip" + (m.ms != null ? (pw[1] === "ok" ? "" : " " + pw[1]) : " off");
     $("liveDot").className = "livedot" + (m.ms != null ? " on" : " off");
@@ -176,14 +202,18 @@
     if (!ids.length) { box.className = "list"; return; }
     box.className = "mgrid";
     ids.forEach(function (m) {
-      var p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, st = mstat(m);
-      var d = el("div", "mbox a-" + (info.accent || providerOf(m).accent));
-      var head = el("div", "mhead"); head.appendChild(el("span", "mlogo")); head.firstChild.appendChild(logoFor(m, 28)); head.appendChild(pchip(m)); d.appendChild(head);
-      var mid = el("div", "mmid"); mid.appendChild(el("div", "mname", m)); mid.appendChild(el("div", "mtag", info.tag || (providerOf(m).name + (p ? "" : " · price not set")))); d.appendChild(mid);
+      var p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, st = mstat(m), prov = providerOf(m);
+      var d = el("div", "mbox a-" + (info.accent || prov.accent));
+      var head = el("div", "mhead"), lg = el("span", "mlogo"); lg.appendChild(logoFor(m, 22)); head.appendChild(lg); head.appendChild(pchip(m)); d.appendChild(head);
+      var nm = el("div", "mname", m); nm.title = m; d.appendChild(nm);
+      d.appendChild(el("div", "mtag", info.tag || (prov.name + (p ? "" : " · price not set"))));
       var io = el("div", "io");
-      [["Input", p ? "$" + p.input : "--", st.in], ["Output", p ? "$" + p.output : "--", st.out]].forEach(function (r) {
-        var b = el("div"); b.setAttribute("data-l", r[0]); b.setAttribute("data-s", r[0] === "Input" ? "In" : "Out"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1] + " /1M")); b.appendChild(el("span", "ios", fmt(r[2]) + " tokens")); io.appendChild(b);
+      [["Input", p ? "$" + p.input + "/1M" : "--"], ["Output", p ? "$" + p.output + "/1M" : "--"]].forEach(function (r) {
+        var b = el("div"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1])); io.appendChild(b);
       }); d.appendChild(io);
+      var kind = kindOf(m);
+      if (kind === "text") d.appendChild(el("div", "mused", fmt(st.in) + " in · " + fmt(st.out) + " out tokens"));
+      if (kind !== "text") { d.appendChild(el("div", "mused", kind === "image" ? "Use it in Chat, Picture tab." : "Video model: not available in this dashboard.")); box.appendChild(d); return; }
       var foot = el("div", "mfoot"), btn = el("button", "small"), res = el("span", "ms");
       btn.type = "button"; btn.disabled = st.testing; btn.innerHTML = svg("play") + "<span>Test</span>";
       if (st.testing) res.textContent = "testing..."; else if (st.failed) { res.className = "ms bad"; res.textContent = st.failed; } else if (st.ms != null) { res.className = "ms ok"; res.textContent = st.ms + " ms"; }
@@ -252,12 +282,23 @@
   function saveChat() { // text only. Pictures are never written to storage.
     try { localStorage.setItem(STORE, JSON.stringify({ m: $("chatModel").value, msgs: chat.msgs.slice(-40).map(function (x) { return { r: x.role, t: x.text, i: (x.images || []).length + (x.nImg || 0) }; }) })); } catch (e) {}
   }
+  // Small copy button on a chat message. It copies only the message text (not the token count or pictures).
+  function addCopy(d) {
+    if (d.querySelector(".mcopy")) return;
+    var b = el("button", "mcopy"); b.type = "button"; b.setAttribute("aria-label", "Copy message"); b.title = "Copy"; b.innerHTML = svg("copy"); d.classList.add("hascopy"); d.appendChild(b);
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var c = d.cloneNode(true); Array.prototype.forEach.call(c.querySelectorAll(".mcopy, small, .thumbs, .imgnote, .dots"), function (n) { n.remove(); });
+      var text = c.textContent.trim(); if (!text) return;
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { b.innerHTML = svg("check"); setTimeout(function () { b.innerHTML = svg("copy"); }, 1400); }).catch(function () { b.textContent = "!"; });
+    });
+  }
   function bubble(kind, text, images, nImg) {
     chatEmptyEl.hidden = true;
     var d = el("div", "msg " + kind);
     if (images && images.length) { var g = el("div", "thumbs"); images.forEach(function (u) { var im = document.createElement("img"); im.src = u; im.alt = "attached picture"; g.appendChild(im); }); d.appendChild(g); }
     else if (nImg) d.appendChild(el("div", "imgnote", nImg + " picture" + (nImg > 1 ? "s" : "") + " (not saved)"));
-    if (text) d.appendChild(el("span", "", text));
+    if (text) { d.appendChild(el("span", "", text)); addCopy(d); }
     $("msgs").appendChild(d); window.scrollTo({ top: document.body.scrollHeight }); return d;
   }
   function loadChat() {
@@ -271,12 +312,12 @@
     } catch (e) {}
   }
   function fillChatModels() {
-    var sel = $("chatModel"), cur = sel.value || chat.savedModel, ids = modelIds().slice();
+    var sel = $("chatModel"), cur = sel.value || chat.savedModel, ids = modelIds().filter(function (m) { return kindOf(m) === "text"; });
     if (!ids.length) ids = Object.keys(cfg.PRICES);
     sel.textContent = "";
     ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
     sel.value = ids.indexOf(cur) >= 0 ? cur : (ids.indexOf("deepseek-flash") >= 0 ? "deepseek-flash" : ids[0]);
-    buildPop(); updateImgNote();
+    buildPop(); updateImgNote(); syncImageMode();
   }
   // Small model menu that opens right under the model button (not a full-screen sheet).
   function buildPop() {
@@ -408,7 +449,7 @@
       answer += dl.content; textNode.textContent = answer; window.scrollTo({ top: document.body.scrollHeight });
     };
     (MOCK ? streamMock(onDelta, chat.ctl.signal) : streamReal(key, model, apiMessages(), onDelta, chat.ctl.signal)).then(function (res) {
-      if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", text: answer, images: [] }); }
+      if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", text: answer, images: [] }); addCopy(bot); }
       if (res && res.usage) { var u = res.usage, pi = u.prompt_tokens || 0, po = u.completion_tokens || 0, st = mstat(model); st.in += pi; st.out += po; renderModels();
         if (u.total_tokens) { var sm = document.createElement("small"); sm.textContent = u.total_tokens + " tokens"; bot.appendChild(sm); } }
       saveChat(); if (!MOCK) refresh(true);
@@ -491,6 +532,55 @@
     showTab(b.getAttribute("data-tab"));
   });
   $("goKey").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
+  // ---------- picture mode (shown only when the key's model list contains an image model) ----------
+  function imageModelIds() { return modelIds().filter(function (m) { return kindOf(m) === "image"; }); }
+  var imgBusy = false;
+  function setChatMode(mode) {
+    var card = $("chatCard"); card.setAttribute("data-mode", mode);
+    document.querySelectorAll("#chatMode button").forEach(function (b) { var on = b.getAttribute("data-mode") === mode; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
+    $("imgPane").hidden = mode !== "image";
+  }
+  function syncImageMode() {
+    var ids = imageModelIds(), sel = $("imgModel"), cur = sel.value;
+    $("chatMode").hidden = !ids.length;
+    sel.textContent = ""; ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
+    if (ids.indexOf(cur) >= 0) sel.value = cur;
+    if (!ids.length) setChatMode("chat");
+  }
+  document.querySelectorAll("#chatMode button").forEach(function (b) { b.addEventListener("click", function () { setChatMode(b.getAttribute("data-mode")); syncChatKeyNote(); }); });
+  // Always send the same simple request; the answer may carry a base64 picture or a link, depending on the model.
+  function createPicture(key, model, prompt, size) {
+    if (MOCK) return new Promise(function (ok) { setTimeout(function () {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d6bfe"/><stop offset=".5" stop-color="#a78bfa"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient></defs><rect width="512" height="512" fill="url(#g)"/><text x="256" y="262" font-size="26" fill="#fff" text-anchor="middle" font-family="sans-serif">demo picture</text></svg>';
+      ok("data:image/svg+xml;base64," + btoa(svg)); }, 1200); });
+    var body = { model: model, prompt: prompt, n: 1 }; if (size) body.size = size;
+    return fetch(cfg.GATEWAY_URL + "/v1/images/generations", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.text().then(function (t) { var j = null; try { j = JSON.parse(t); } catch (e) {}
+        if (!r.ok) { var m = j && j.error && (j.error.message || j.error) || ("error " + r.status); var er = new Error(typeof m === "string" ? m : JSON.stringify(m)); er.status = r.status; throw er; }
+        var d = j && j.data && j.data[0]; if (!d) throw new Error("The gateway sent no picture.");
+        return d.b64_json ? "data:image/png;base64," + d.b64_json : d.url; }); });
+  }
+  $("imgCopy").addEventListener("click", function () {
+    var t = $("imgPrompt").value.trim(), b = this, lab = b.querySelector("span"); if (!t) return;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { lab.textContent = "Copied"; setTimeout(function () { lab.textContent = "Copy prompt"; }, 1400); }).catch(function () { lab.textContent = "Press and hold the box to copy"; });
+  });
+  $("imgGo").addEventListener("click", function () {
+    if (imgBusy) return;
+    var key = state.key || $("keyInput").value.trim(), prompt = $("imgPrompt").value.trim(), out = $("imgOut"), btn = this;
+    if (!MOCK && !key) { syncChatKeyNote(); return; }
+    if (!prompt) { out.textContent = ""; out.appendChild(el("p", "error", "Describe the picture first.")); return; }
+    imgBusy = true; btn.disabled = true; btn.querySelector("span").textContent = "Creating..."; $("imgSave").hidden = true;
+    out.textContent = ""; var wait = el("p", "muted"); wait.innerHTML = '<span class="dots">Creating your picture</span>'; out.appendChild(wait);
+    createPicture(key, $("imgModel").value, prompt, $("imgSize").value).then(function (src) {
+      out.textContent = ""; var im = document.createElement("img"); im.alt = "Generated picture"; im.src = src; out.appendChild(im);
+      var sv = $("imgSave"); sv.href = src; sv.hidden = false; if (!MOCK) refresh(true);
+    }).catch(function (err) {
+      out.textContent = ""; out.appendChild(el("p", "error", err.status === 401 ? "The gateway says this key is not valid."
+        : err.status === 402 || err.status === 403 || /quota|balance/i.test(err.message) ? "Out of tokens or not allowed for this model. " + err.message
+        : "Could not create the picture (" + (err.message || "network error") + ")."));
+    }).then(function () { imgBusy = false; btn.disabled = false; btn.querySelector("span").textContent = "Create picture"; });
+  });
+
   // ---------- start page ----------
   var BASE_V1 = cfg.GATEWAY_URL + "/v1";
   function priceText(id) { var p = cfg.PRICES[id]; return p ? "$" + p.input + " in · $" + p.output + " out" : "price: ask the owner"; }
@@ -575,5 +665,6 @@
   $("startBtn").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
   if (cfg.SUPPORT_TELEGRAM) { var tgb = $("tgBtn"); tgb.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; tgb.hidden = false; }
 
+  loadHist(); renderStrip();
   document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons();
 })();

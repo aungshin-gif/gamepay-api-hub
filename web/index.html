@@ -50,9 +50,16 @@
 
     <!-- Models -->
     <section class="panel" id="tab-models">
-      <div class="card">
+      <div class="card livecard">
         <div class="top"><h2><span class="livedot" id="liveDot"></span>Live status</h2><span class="chip idle" id="pingChip">not checked</span></div>
         <p class="muted" id="liveInfo">Paste your key above and tap Check to see which models are live.</p>
+        <div class="lstats">
+          <div><span class="iol">Endpoint ping</span><b id="lsPing">--</b></div>
+          <div><span class="iol">Availability</span><b id="lsAvail">--</b></div>
+          <div><span class="iol">Checks</span><b id="lsCount">0</b></div>
+        </div>
+        <div class="strip" id="pingStrip" role="img" aria-label="Recent gateway checks on this device"></div>
+        <p class="hint">Recent checks of the gateway, kept on this device only (new checks are added while this page is open).</p>
       </div>
       <div class="skel" id="skel" hidden aria-hidden="true"><div class="sk sk-sq"></div><div class="sk sk-sq"></div></div>
       <div id="modelList" class="list"></div>
@@ -69,7 +76,7 @@
           <i class="glline" aria-hidden="true"></i>
         </div>
       </div>
-      <div class="card chatcard">
+      <div class="card chatcard" id="chatCard" data-mode="chat">
         <div class="top">
           <h2>Chat</h2>
           <div class="right">
@@ -80,6 +87,20 @@
             <select id="chatModel" hidden aria-hidden="true"></select>
             <button type="button" class="icon-btn" id="chatClear" aria-label="Clear chat" title="Clear chat"><i data-icon="trash"></i></button>
           </div>
+        </div>
+        <div class="seg" id="chatMode" role="tablist" aria-label="Chat or picture" hidden>
+          <button type="button" role="tab" data-mode="chat" class="on" aria-selected="true"><i data-icon="chat"></i><span>Chat</span></button>
+          <button type="button" role="tab" data-mode="image" aria-selected="false"><i data-icon="image"></i><span>Picture</span></button>
+        </div>
+        <div class="imgpane" id="imgPane" hidden>
+          <div class="imgrow">
+            <label class="sel"><span class="muted">Model</span><select id="imgModel" aria-label="Picture model"></select></label>
+            <label class="sel"><span class="muted">Size</span><select id="imgSize" aria-label="Picture size"><option value="">Default</option><option value="1024x1024">Square 1024</option></select></label>
+          </div>
+          <textarea id="imgPrompt" rows="3" placeholder="Describe the picture..." aria-label="Picture description"></textarea>
+          <div class="imgrow"><button type="button" class="primary" id="imgGo"><i data-icon="image"></i><span>Create picture</span></button><button type="button" class="soft" id="imgCopy"><i data-icon="copy"></i><span>Copy prompt</span></button><a class="soft linkbtn" id="imgSave" download="picture.png" hidden><i data-icon="download"></i><span>Save</span></a></div>
+          <p class="hint">One picture costs more than a chat message. It can take up to a minute.</p>
+          <div class="imgout" id="imgOut" aria-live="polite"><p class="muted">Your picture will appear here.</p></div>
         </div>
         <div class="msgs" id="msgs" aria-live="polite">
           <p class="muted" id="chatEmpty">Ask anything. Your chat text is kept on this device only (the bin button deletes it). Pictures are never saved. Longer chats use more tokens because earlier messages are sent each time.</p>

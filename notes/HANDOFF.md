@@ -292,3 +292,47 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - **Models** boxes: DeepSeek and OpenAI. Tapping one opens a pop-up sheet listing the models in `START_MODELS` (`web/config.js`) with copy buttons and prices from `PRICES` ("price: ask the owner" when unset). The OpenAI list there is a guess at what to advertise (it includes premium models); edit it freely. Names only: what a key can really use is decided in the gateway.
 - **Works with** boxes: VS Code, Terminal, Python, Chat apps, OpenHands, Your own app. Each opens a sheet with Base URL, model and a copy-ready command. VS Code and chat-app steps are generic on purpose (menu names differ); OpenHands steps are the ones the owner verified.
 - Checked with Playwright (demo mode) at 320, 390 and 820 px: sheets open and close (button, Escape, backdrop), copy works, Get started goes to My key, no overflow, no console errors. Not checked on the real tablet.
+
+## Update 2026-10-16 (picture mode in Chat)
+
+- Owner could not make pictures: Chat calls `/v1/chat/completions`, which only returns text (the model gave an image prompt and said it cannot draw). The gateway Models list at the time had no image model (only GPT chat models and `sora-2-pro`, a video model).
+- Added a **Chat | Picture** switch inside the Chat card. It appears only when the checked key's model list contains an id matching `/image|dall-?e/i` (`imageModelIds()` in `web/app.js`), so nothing changes until an image model is added in the gateway and allowed on the key. Picture mode sends `POST /v1/images/generations` with `{model, prompt, n:1}` plus `size` only when the owner picks "Square 1024", and shows either a base64 picture or a URL, with a Save link. It does not send `response_format` (some models reject it).
+- NOT verified against the real gateway: whether it exposes the images endpoint with this key, the model id, the price, and the real answer shape. Tested only with a stubbed gateway (success, 403 quota, 400 error) and demo mode (`?mock=1` now lists `gpt-image-1`). Image prices are not in `PRICES`; set them in the gateway first (never zero).
+
+## Update 2026-10-16 (compact Models tab, model kinds)
+
+- **Models tab redesigned** after the owner showed a status page they liked (`api.mwapi.dev/monitor`): compact cards (two per row, three from 760 px) with logo, status pill, name, Input/Output price boxes, tokens used and a small Test button. The Live status card now has Endpoint ping, Availability and Checks plus a strip of the last 60 gateway checks. **Honest limit:** the history is kept in this browser (`localStorage` key `gph_ping_hist`, only timestamps and ms, no key) and grows only while the page is open, so "Availability" is for this device, not a 7-day server-side uptime. A real server-side history would need something that checks on a schedule and stores results (for example a scheduled GitHub Action writing a JSON file); not built.
+- **Model kinds** (`kindOf()` in `web/app.js`): text models go in the chat box and get a Test button; `image`/`dall-e` models are used only in Chat > Picture; `sora`/`video` models are shown but cannot be used here. `sora*` and `dall-e*` now count as OpenAI (they showed as "Other" and put an "Other" badge in the header).
+- The owner added `gpt-4.1-mini`, `gpt-image-1-mini` and `sora-2-pro` to the key. The Picture mode (see the earlier update) therefore appears for that key once this is deployed. Not yet tried against the real gateway: the real images answer, the price, and whether `size` is accepted.
+- `START_MODELS.openai` in `web/config.js` now starts with `gpt-4.1-mini` and `gpt-image-1-mini`. OpenAI prices are still unset.
+
+## Update 2026-10-16 (copy buttons)
+
+- Every chat message (yours and the model's, also after a reload) now has a small copy button in its top-right corner (`addCopy()` in `web/app.js`). It copies only the message text, not the token count or pictures. The Picture pane has a **Copy prompt** button next to "Create picture". Checked in demo mode at 320 and 390 px (clipboard contents verified, no console errors); the real tablet's clipboard behaviour was not checked.
+
+---
+
+## START HERE (written 2026-10-16, end of a very long session; read this before anything else)
+
+**Who and how**: the owner works only from a Xiaomi Pad 7 tablet (no laptop, no Termux), sends screenshots, wants answers in Burmese, one step at a time, and wants honesty about what was not verified. Never ask for keys or passwords in chat; two keys already appeared in screenshots (confirm they are revoked in the gateway). "Pr" = open a PR into `main`; "Pr and merge" = also squash-merge it. The repo is public.
+
+**What exists (all live on `main` once PR #15 is merged)**
+- Dashboard `web/` at https://aungshin-gif.github.io/gamepay-api-hub/ . Tabs: **Start** (landing: code background, DeepSeek/OpenAI boxes with model pop-ups, "Works with" boxes, Telegram support `@angsthtun`), **My key** (Paste / Clear / Check, tokens left), **Chat** (Chat | Picture switch, copy buttons), **Models** (compact cards, last-60 check history kept in the browser), **Guide**.
+- Settings live in `web/config.js` (gateway URL, `PRICES`, `MODEL_INFO`, `START_MODELS`, `SUPPORT_TELEGRAM`). Gateway calls are only in `web/app.js` (`fetchUsage`, `fetchModels`, `testModel`, `streamReal`, `createPicture`). `kindOf()` decides text / image / video models. Demo: `?mock=1`; debug: `?debug=1`.
+- Gateway: new-api on Railway (`https://new-api-production-6f0d.up.railway.app`). DeepSeek priced and working. The owner added an OpenAI channel; their key lists `gpt-4.1-mini`, `gpt-image-1-mini`, `sora-2-pro` (an admin key also showed `gpt-5.3-codex`, `gpt-5.5-pro`, `gpt-5.6-*`, `gpt-6-*`). OpenAI credit of $5 was bought (it only worked without a VPN, with the card region as Myanmar).
+- Tried and dropped: Codespaces + VS Code + Cline (too messy on a tablet). Working: OpenHands Cloud with an LLM profile (Custom Model `openai/<model>`, Base URL `<gateway>/v1`, gateway key).
+
+**Not verified (do not claim they work)**: Picture mode against the real gateway (endpoint answer, `size`, price); the real tablet's look/feel and clipboard prompt; any OpenAI price (not set in the gateway or in `PRICES`); that gateway sign-up is really closed (owner was doing it); a server-side uptime history (the dashboard's history is per browser).
+
+**Open items, most important first**
+1. Confirm the keys that appeared in screenshots are revoked; close gateway sign-up (keep login on); 2FA; DeepSeek balance alert.
+2. Railway trial credit was about $4.75 / 29 days on 2026-10-16: decide the plan before it ends (the whole gateway stops otherwise).
+3. Set OpenAI prices in the gateway first (Models -> model -> Pricing -> Expression, per token, USD per 1M, never zero), then copy the same numbers into `PRICES`. Official OpenAI prices could not be fetched from the sandbox; the owner must supply them. Remove `sora-2-pro`, `gpt-5.5-pro`, `gpt-6-astra` from member keys.
+4. Test Picture mode with the owner's own key and a tiny prompt; check the image price first.
+5. Custom domain `api.gamepayhub.shop` (Railway Custom Domain + a DNS CNAME), then change `GATEWAY_URL` only after it works.
+6. Optional ideas the owner liked: Burmese language toggle, a real server-side uptime history, more "Works with" guides.
+
+**Git and testing gotchas**
+- After every squash-merge the branch has the old commits, so the next PR conflicts. What works without force-push (force-push and `git checkout -B` resets were denied by the permission classifier): `git merge origin/main`, then `git checkout --ours` the conflicted files (the branch already contains everything main has), `git add`, commit, and check that `git diff origin/main HEAD` shows only the new work. Then open the PR and squash-merge with `expectedHeadSha` set to the full 40-character SHA.
+- Test with Playwright from `/opt/node-tools` (Chromium in `/opt/pw-browsers`, launch with `executablePath: '/opt/pw-browsers/chromium'`) against `python3 -m http.server`; stub the gateway with `page.route`; check 320, 390 and 820 px for horizontal overflow and console errors. Do not use `pkill -f <pattern>` in the same shell command line (it matches and kills your own shell). The sandbox cannot reach Railway, the gateway, DeepSeek, OpenAI or most websites.
+- A CSS class called `warn` already exists for notices; do not reuse it for new widgets (the history bars did and overflowed).
