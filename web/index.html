@@ -34,6 +34,10 @@
       <div class="row">
         <input id="keyInput" type="password" name="gph-api-key" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" placeholder="sk-...">
         <button type="button" class="icon-btn" id="toggleKey" aria-label="Show key"><i data-icon="eye"></i></button>
+      </div>
+      <div class="keyacts">
+        <button type="button" class="soft" id="pasteBtn" aria-label="Paste key from clipboard"><i data-icon="paste"></i><span>Paste</span></button>
+        <button type="button" class="soft danger" id="clearKeyBtn" aria-label="Clear key"><i data-icon="trash"></i><span>Clear</span></button>
         <button type="button" class="primary" id="checkBtn" aria-label="Check key"><i data-icon="refresh"></i><span>Check</span></button>
       </div>
       <p class="hint">Sent only to the gateway. Never saved on this page.</p>
@@ -69,7 +73,7 @@
           </div>
         </div>
         <div class="msgs" id="msgs" aria-live="polite">
-          <p class="muted" id="chatEmpty">Ask anything. Your chat text is kept on this device only (Clear deletes it). Pictures are never saved. Longer chats use more tokens because earlier messages are sent each time.</p>
+          <p class="muted" id="chatEmpty">Ask anything. Your chat text is kept on this device only (the bin button deletes it). Pictures are never saved. Longer chats use more tokens because earlier messages are sent each time.</p>
         </div>
         <div class="attach-row" id="attachRow" hidden></div>
         <p class="warn" id="imgNote" hidden><i data-icon="alert"></i><span>DeepSeek models may not read pictures. If you get an error, switch to a model that supports images.</span></p>

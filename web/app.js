@@ -29,7 +29,8 @@
     image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',
     play: '<path d="M7 4l13 8-13 8z"/>',
     chevron: '<path d="M6 9l6 6 6-6"/>',
-    x: '<path d="M6 6l12 12M18 6L6 18"/>'
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    paste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
   function paintIcons(root) { (root || document).querySelectorAll("i[data-icon]").forEach(function (e) { e.outerHTML = svg(e.getAttribute("data-icon")); }); }
@@ -442,6 +443,26 @@
     if (canMask) { show = keyBox.classList.contains("masked"); keyBox.classList.toggle("masked", !show); }
     else { show = keyBox.type === "password"; keyBox.type = show ? "text" : "password"; }
     setBtnIcon(this, show ? "eye-off" : "eye");
+  });
+  // Paste: read the clipboard into the key box (the browser may ask permission the first time). Does not check the key by itself.
+  var PASTE_HELP = "Could not read the clipboard. Press and hold inside the key box and choose Paste.";
+  $("pasteBtn").addEventListener("click", function () {
+    var b = this, label = b.querySelector("span");
+    if (!navigator.clipboard || !navigator.clipboard.readText) { fail(PASTE_HELP); return; }
+    navigator.clipboard.readText().then(function (t) {
+      t = (t || "").trim();
+      if (!t) { fail("The clipboard is empty. Copy your key first."); return; }
+      keyBox.value = t; $("error").hidden = true;
+      label.textContent = "Pasted"; setTimeout(function () { label.textContent = "Paste"; }, 1400);
+    }).catch(function () { fail(PASTE_HELP); });
+  });
+  // Clear: forget the key and everything that was loaded with it. Chat text on this device is left alone (use Clear chat for that).
+  $("clearKeyBtn").addEventListener("click", function () {
+    keyBox.value = ""; state.key = ""; state.data = null; state.models = []; state.ms = {}; state.prev = {};
+    if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
+    updatePowered(); fillChatModels();
+    $("emptyState").hidden = false; $("keyData").hidden = true; $("modelList").textContent = ""; $("modelHint").hidden = true; $("error").hidden = true;
+    keyBox.focus();
   });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-copy],[data-copytext]"); if (!b) return;

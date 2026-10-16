@@ -259,3 +259,9 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - Logos show in the Models boxes, the Chat model menu and the picker. The header "Powered by" badge still hides OpenAI (`POWERED_HIDE`), as the owner asked earlier.
 - Demo mode (`?mock=1`) now lists `gpt-6-luna` and `gpt-5.4-nano` so the logos can be previewed. No OpenAI prices were added; set them in the gateway and `PRICES` once a channel exists (never zero).
 - Checked with Playwright at 390 and 820 px in demo mode: logos load, no console errors. Not checked: real device look, and real OpenAI model ids from the gateway (no channel yet).
+
+## Update 2026-10-16 (key buttons and button texture)
+
+- **My key** card now has a second row: **Paste** (reads the clipboard into the key box, needs the browser's clipboard permission, does not check the key by itself), **Clear** (empties the key box, stops the live ping, hides the key data and model boxes; chat text on the device is kept) and **Check**. The "Check" label is no longer hidden on phones.
+- All buttons got a matte, soft-touch look (faint top light, thin darker bottom edge, soft shadow, pressed buttons sink in). It is still not glossy, in line with the earlier "flat, not glossy" request; tell the owner if they want it flatter or richer.
+- Checked with Playwright (demo mode) at 320, 390 and 820 px: paste, clear, empty clipboard message, no console errors, no horizontal scroll. Not checked: real clipboard permission prompt on the owner's tablet, real device look.
