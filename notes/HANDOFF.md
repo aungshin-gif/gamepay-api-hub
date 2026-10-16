@@ -270,3 +270,4 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 
 - Icons in `web/app.js` (`ICONS`) were redrawn as soft two-tone icons: a faint filled shape (class `f`, styled in `styles.css` as `svg.ic .f`) under a clean 1.8 px outline. Redrawn: key, eye, copy, check, refresh, clock, shield, alert, calendar, activity, cube, trash, paste. Others (chat, book, image, send, stop, play, chevron, x, eye-off) are unchanged.
 - The key icon next to "Your API key" is larger and blue. Checked at 320/390 px in demo mode (no overflow, no console errors); real device look not checked.
+- Also redrawn the same way: the Guide book icon (open book with text lines) and the Chat bubble, so all four nav icons match.
