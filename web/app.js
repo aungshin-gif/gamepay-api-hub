@@ -30,7 +30,12 @@
     play: '<path d="M7 4l13 8-13 8z"/>',
     chevron: '<path d="M6 9l6 6 6-6"/>',
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
-    paste: '<rect class="f" x="5" y="4" width="14" height="17" rx="2.5"/><rect x="5" y="4" width="14" height="17" rx="2.5"/><rect x="9" y="2.5" width="6" height="4" rx="1.3"/><path d="M9 11.5h6M9 15.5h4"/>'
+    paste: '<rect class="f" x="5" y="4" width="14" height="17" rx="2.5"/><rect x="5" y="4" width="14" height="17" rx="2.5"/><rect x="9" y="2.5" width="6" height="4" rx="1.3"/><path d="M9 11.5h6M9 15.5h4"/>',
+    home: '<path class="f" d="M4 11l8-7 8 7v8.5a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19.5z"/><path d="M4 11l8-7 8 7v8.5a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19.5z"/>',
+    code: '<path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5M13.5 5l-3 14"/>',
+    terminal: '<rect class="f" x="3" y="4.5" width="18" height="15" rx="3"/><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M7.5 10l3 2.5-3 2.5M13 15h4"/>',
+    bot: '<rect class="f" x="4" y="8" width="16" height="11.5" rx="3.2"/><rect x="4" y="8" width="16" height="11.5" rx="3.2"/><path d="M12 8V5M9 13.2h.01M15 13.2h.01M9.5 16.3h5"/><circle cx="12" cy="4" r="1"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
   function paintIcons(root) { (root || document).querySelectorAll("i[data-icon]").forEach(function (e) { e.outerHTML = svg(e.getAttribute("data-icon")); }); }
@@ -486,5 +491,89 @@
     showTab(b.getAttribute("data-tab"));
   });
   $("goKey").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
-  document.body.setAttribute("data-tab", "key"); loadChat(); fillChatModels(); paintIcons();
+  // ---------- start page ----------
+  var BASE_V1 = cfg.GATEWAY_URL + "/v1";
+  function priceText(id) { var p = cfg.PRICES[id]; return p ? "$" + p.input + " in · $" + p.output + " out" : "price: ask the owner"; }
+  // Slow-moving code lines behind the Start hero (decoration only; no key is ever shown here).
+  (function codeRain() {
+    var lines = [
+      "$ curl " + cfg.GATEWAY_URL + "/v1/chat/completions \\", '    -H "Authorization: Bearer YOUR_KEY" \\', '    -H "Content-Type: application/json" \\',
+      "    -d '{\"model\": \"deepseek-flash\",", "         \"messages\": [{\"role\": \"user\", \"content\": \"Hello\"}]}'", "",
+      "from openai import OpenAI", 'client = OpenAI(base_url="' + BASE_V1 + '",', '                api_key="YOUR_KEY")', "reply = client.chat.completions.create(",
+      '    model="gpt-6-luna",', '    messages=[{"role": "user", "content": "Hi"}])', "print(reply.choices[0].message.content)", "",
+      "export OPENAI_BASE_URL=" + BASE_V1, "export OPENAI_API_KEY=YOUR_KEY", "", "const res = await fetch(BASE + \"/models\", {", "  headers: { Authorization: \"Bearer \" + key }", "});", ""
+    ];
+    var slide = $("codeSlide"); for (var k = 0; k < 2; k++) { var pre = document.createElement("pre"); pre.textContent = lines.join("\n"); slide.appendChild(pre); }
+  })();
+  // Pop-up sheet (used for the model lists and the platform settings).
+  var sheetBg = $("sheetBg"), sheetFrom = null;
+  function openSheet(title, logoSrc, nodes) {
+    $("sheetTitle").textContent = title; var lg = $("sheetLogo"); lg.textContent = ""; if (logoSrc) lg.appendChild(logoImg(24, logoSrc));
+    var body = $("sheetBody"); body.textContent = ""; nodes.forEach(function (n) { body.appendChild(n); });
+    sheetFrom = document.activeElement; sheetBg.hidden = false; document.body.classList.add("noscroll"); $("sheetClose").focus();
+  }
+  function closeSheet() { if (sheetBg.hidden) return; sheetBg.hidden = true; document.body.classList.remove("noscroll"); if (sheetFrom && sheetFrom.focus) sheetFrom.focus(); }
+  $("sheetClose").addEventListener("click", closeSheet);
+  sheetBg.addEventListener("click", function (e) { if (e.target === sheetBg) closeSheet(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
+  function copyRow(label, value) {
+    var r = el("div", "crow"), t = el("div", "ctx"); t.appendChild(el("span", "muted", label)); t.appendChild(el("code", "", value)); r.appendChild(t);
+    var b = el("button", "icon-btn"); b.type = "button"; b.setAttribute("data-copytext", value); b.setAttribute("aria-label", "Copy " + label); b.innerHTML = svg("copy"); r.appendChild(b); return r;
+  }
+  function note(text) { return el("p", "hint", text); }
+  var PROVS = [
+    { key: "deepseek", name: "DeepSeek", logo: "assets/deepseek.png", blurb: "Fast and low price", accent: "sky" },
+    { key: "openai", name: "OpenAI", logo: "assets/openai-white.png", blurb: "GPT models", accent: "teal" }
+  ];
+  var provBox = $("provBoxes");
+  PROVS.forEach(function (p) {
+    var list = (cfg.START_MODELS || {})[p.key] || [];
+    var b = el("button", "pbx a-" + p.accent); b.type = "button"; b.setAttribute("aria-haspopup", "dialog");
+    var lg = el("span", "pbl"); lg.appendChild(logoImg(30, p.logo)); b.appendChild(lg);
+    var tx = el("span", "pbt"); tx.appendChild(el("b", "", p.name)); tx.appendChild(el("span", "muted", list.length + " models · " + p.blurb)); b.appendChild(tx);
+    var go = el("span", "pbg"); go.innerHTML = svg("chevron"); b.appendChild(go);
+    b.addEventListener("click", function () {
+      var rows = list.map(function (m) {
+        var r = el("div", "mrow"), t = el("div", "mtx"); t.appendChild(el("b", "", m.id)); t.appendChild(el("span", "muted", m.tag + " · " + priceText(m.id))); r.appendChild(t);
+        var c = el("button", "icon-btn"); c.type = "button"; c.setAttribute("data-copytext", m.id); c.setAttribute("aria-label", "Copy " + m.id); c.innerHTML = svg("copy"); r.appendChild(c); return r;
+      });
+      rows.push(note("Which of these you can use depends on your key. Premium models are only on some keys."));
+      var go2 = el("button", "primary"); go2.type = "button"; go2.innerHTML = "<span>Get started</span>" + svg("arrow"); go2.addEventListener("click", function () { closeSheet(); showTab("key"); $("keyInput").focus(); });
+      rows.push(go2); openSheet(p.name + " models", p.logo, rows);
+    });
+    provBox.appendChild(b);
+  });
+  var CURL = 'curl ' + cfg.GATEWAY_URL + '/v1/chat/completions \\\n  -H "Authorization: Bearer YOUR_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"model":"deepseek-flash","messages":[{"role":"user","content":"Hello"}]}\'';
+  var PY = 'from openai import OpenAI\nclient = OpenAI(base_url="' + BASE_V1 + '", api_key="YOUR_KEY")\nr = client.chat.completions.create(model="deepseek-flash",\n    messages=[{"role": "user", "content": "Hello"}])\nprint(r.choices[0].message.content)';
+  function codeBlock(text) { var w = el("div", "crow"), pr = el("pre", "snip", text); w.appendChild(pr); var b = el("button", "icon-btn"); b.type = "button"; b.setAttribute("data-copytext", text); b.setAttribute("aria-label", "Copy"); b.innerHTML = svg("copy"); w.appendChild(b); return w; }
+  var PLATS = [
+    { name: "VS Code", icon: "code", tag: "Editor + AI agent", nodes: function () { return [
+      note("VS Code is an editor. Add an AI extension that accepts an OpenAI-compatible provider (for example Cline or Continue), then enter:"),
+      copyRow("Base URL", BASE_V1), copyRow("Model", "deepseek-flash"), note("API key: your own key. Menu names differ between extensions."),
+      note("Tip: VS Code also has a built-in terminal, so you can use the Terminal steps there too.")]; } },
+    { name: "Terminal", icon: "terminal", tag: "curl and command line", nodes: function () { return [
+      note("The terminal is a text window where you type commands. Try this (replace YOUR_KEY):"), codeBlock(CURL),
+      note("Many command-line tools read these two settings:"), copyRow("OPENAI_BASE_URL", BASE_V1), copyRow("OPENAI_API_KEY", "YOUR_KEY")]; } },
+    { name: "Python", icon: "code", tag: "openai library", nodes: function () { return [note("Install the library with: pip install openai"), codeBlock(PY)]; } },
+    { name: "Chat apps", icon: "chat", tag: "Chatbox-style apps", nodes: function () { return [
+      note("Chat apps such as Chatbox let you add a custom OpenAI-compatible provider. Look for a setting like \"API host\" or \"Base URL\":"),
+      copyRow("Base URL", BASE_V1), copyRow("Model", "deepseek-flash"), note("API key: your own key.")]; } },
+    { name: "OpenHands", icon: "bot", tag: "Web coding agent", nodes: function () { return [
+      note("In OpenHands open Settings, then Language Model (LLM), add a profile and open the Advanced tab:"),
+      copyRow("Custom Model", "openai/deepseek-flash"), copyRow("Base URL", BASE_V1), note("API key: your own key. Use a separate key with a small limit for tools you do not run yourself.")]; } },
+    { name: "Your own app", icon: "cube", tag: "Any OpenAI library", nodes: function () { return [
+      note("Any library or app that supports the OpenAI API works. Set the base URL and your key:"), copyRow("Base URL", BASE_V1), copyRow("Model", "deepseek-flash"), codeBlock(PY)]; } }
+  ];
+  var platBox = $("platBoxes");
+  PLATS.forEach(function (p) {
+    var b = el("button", "plb"); b.type = "button"; b.setAttribute("aria-haspopup", "dialog");
+    var ic = el("span", "pli"); ic.innerHTML = svg(p.icon); b.appendChild(ic);
+    var tx = el("span", "plt"); tx.appendChild(el("b", "", p.name)); tx.appendChild(el("span", "muted", p.tag)); b.appendChild(tx);
+    b.addEventListener("click", function () { openSheet(p.name, null, p.nodes()); });
+    platBox.appendChild(b);
+  });
+  $("startBtn").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
+  if (cfg.SUPPORT_TELEGRAM) { var tgb = $("tgBtn"); tgb.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; tgb.hidden = false; }
+
+  document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons();
 })();

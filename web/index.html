@@ -21,7 +21,8 @@
       <div class="powered" id="powered" aria-label="Powered by" hidden><span class="plabel">Powered by</span><div class="pchips" id="pchips"></div></div>
     </div>
     <nav class="nav" id="nav" aria-label="Sections">
-      <button type="button" data-tab="key" class="on"><i data-icon="key"></i><span>My key</span></button>
+      <button type="button" data-tab="start" class="on"><i data-icon="home"></i><span>Start</span></button>
+      <button type="button" data-tab="key"><i data-icon="key"></i><span>My key</span></button>
       <button type="button" data-tab="chat"><i data-icon="chat"></i><span>Chat</span></button>
       <button type="button" data-tab="models"><i data-icon="cube"></i><span>Models</span></button>
       <button type="button" data-tab="guide"><i data-icon="book"></i><span>Guide</span></button>
@@ -96,7 +97,35 @@
     </section>
 
     <!-- My key -->
-    <section class="panel on" id="tab-key">
+    <!-- Start -->
+    <section class="panel on" id="tab-start">
+      <div class="card landing">
+        <div class="codebg" aria-hidden="true"><div class="codeslide" id="codeSlide"></div></div>
+        <div class="ltx">
+          <span class="eyebrow">API gateway</span>
+          <h1>One key.<br><span class="grad">DeepSeek &amp; OpenAI</span> models.</h1>
+          <p>Use the same key in chat, VS Code, the terminal and your own apps.</p>
+          <div class="lbtns">
+            <button type="button" class="primary" id="startBtn"><span>Get started</span><i data-icon="arrow"></i></button>
+            <a class="ghostbtn" id="tgBtn" href="#" target="_blank" rel="noopener" hidden><i data-icon="send"></i><span>Telegram support</span></a>
+          </div>
+        </div>
+      </div>
+      <div class="sechead"><h2>Models</h2><span class="muted">Tap a box to see the models</span></div>
+      <div class="pgrid" id="provBoxes"></div>
+      <div class="sechead"><h2>Works with</h2><span class="muted">Tap for the settings</span></div>
+      <div class="plgrid" id="platBoxes"></div>
+      <div class="card stepsc">
+        <h2>3 steps</h2>
+        <ol class="steps3">
+          <li><b>Get a key</b><span>Ask the owner on Telegram.</span></li>
+          <li><b>Check it</b><span>Open My key and paste it to see how much is left.</span></li>
+          <li><b>Use it</b><span>Chat here, or connect your tool with the Base URL and key.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-key">
       <div class="card empty" id="emptyState">
         <i data-icon="shield" class="big"></i>
         <h2>Paste your key to begin</h2>
@@ -144,6 +173,12 @@
     </section>
     <p class="foot">Unofficial dashboard for a private gateway. Not affiliated with or endorsed by DeepSeek, OpenAI or any model provider.</p>
   </main>
+</div>
+<div class="sheet-bg" id="sheetBg" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head"><span class="sheet-logo" id="sheetLogo"></span><h2 id="sheetTitle"></h2><button type="button" class="icon-btn" id="sheetClose" aria-label="Close"><i data-icon="x"></i></button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
 </div>
 <script src="config.js"></script>
 <script src="app.js"></script>
