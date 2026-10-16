@@ -110,10 +110,10 @@
   function countUp(node, to, f, from) {
     node.__a = (node.__a || 0) + 1; var id = node.__a;
     if (reduced || from === to || !isFinite(from)) { node.textContent = f(to); return; }
-    var t0 = null, dur = 900;
+    var t0 = null, dur = 2200;
     (function step(t) {
       if (node.__a !== id) return; if (t0 == null) t0 = t;
-      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      var k = Math.min(1, (t - t0) / dur), e = .5 - .5 * Math.cos(Math.PI * k); // gentle start and finish
       node.textContent = f(from + (to - from) * e); if (k < 1) requestAnimationFrame(step);
     })(performance.now());
   }

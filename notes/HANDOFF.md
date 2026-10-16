@@ -272,3 +272,8 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - The key icon next to "Your API key" is larger and blue. Checked at 320/390 px in demo mode (no overflow, no console errors); real device look not checked.
 - Also redrawn the same way: the Guide book icon (open book with text lines) and the Chat bubble, so all four nav icons match.
 - The key icon itself was redesigned (round bow with a ring, diagonal shaft, two teeth). Owner asked for a different key shape, not just new styling; ask if they want another shape (for example an upright classic key).
+
+## Update 2026-10-16 (slower status animations)
+
+- Owner asked for slower, calmer status animations. Count-up numbers now take 2.2 s with a gentle sine ease (`countUp` in `web/app.js`); the ring fills in 2 s, the token bar in 2.2 s, the tiles rise in 1.1 s one after another (160 ms apart), the bar's shimmer loop is 5 s and the "live" pulses are 3.6 to 4 s. All in `web/styles.css`. Tab switching and button presses were not slowed. Reduced-motion users still get no animation.
+- Checked in demo mode by sampling the numbers over time (smooth 0.4 s to 2.8 s). Not checked: how it feels on the real tablet; say if it should be slower or faster.
