@@ -294,3 +294,18 @@ body.noscroll { overflow: hidden; }
 @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (max-width: 480px) { .landing { padding: 22px 16px; min-height: 280px; } .pbx { grid-template-columns: auto minmax(0, 1fr); } .pbg { display: none; } .pbl { width: 40px; height: 40px; } .pbt b { font-size: 16px; } .plb { padding: 10px; gap: 8px; } .nav button { font-size: 11.5px; } }
 @media (prefers-reduced-motion: reduce) { .codeslide, .grad, .sheet-bg, .sheet { animation: none !important; } }
+
+/* Picture mode inside Chat */
+.seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 16px; background: var(--mist); border: 1px solid var(--border); justify-self: start; }
+.seg button { padding: 7px 14px; border-radius: 12px; background: transparent; color: var(--muted) !important; font-weight: 700; font-size: 14px; }
+.seg button.on { background: #fff; color: var(--blue-deep) !important; box-shadow: 0 1px 0 #fff inset, 0 2px 8px rgba(77, 107, 254, .16); }
+.imgpane { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.imgrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.sel { display: grid; gap: 3px; font-weight: 600; } .sel select { font: inherit; color: var(--ink); padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border); background: #fff; max-width: 100%; }
+.imgpane textarea { width: 100%; font: inherit; color: var(--ink); padding: 12px 14px; border-radius: 16px; border: 1px solid var(--border); background: #fff; resize: vertical; min-height: 84px; }
+.imgpane .primary { height: 46px; border-radius: 14px; padding: 0 18px; }
+.linkbtn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 14px; text-decoration: none; }
+.imgout { min-height: 120px; display: grid; place-items: center; text-align: center; border-radius: 18px; background: #f5f7ff; border: 1px dashed #d6defb; padding: 10px; }
+.imgout img { max-width: 100%; border-radius: 14px; border: 1px solid var(--border); display: block; }
+.imgout .error { width: 100%; text-align: left; }
+.chatcard[data-mode="image"] .msgs, .chatcard[data-mode="image"] .composer, .chatcard[data-mode="image"] .attach-row, .chatcard[data-mode="image"] #imgNote, .chatcard[data-mode="image"] .top .right { display: none; }

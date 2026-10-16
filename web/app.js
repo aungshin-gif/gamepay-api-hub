@@ -35,7 +35,8 @@
     code: '<path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5M13.5 5l-3 14"/>',
     terminal: '<rect class="f" x="3" y="4.5" width="18" height="15" rx="3"/><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M7.5 10l3 2.5-3 2.5M13 15h4"/>',
     bot: '<rect class="f" x="4" y="8" width="16" height="11.5" rx="3.2"/><rect x="4" y="8" width="16" height="11.5" rx="3.2"/><path d="M12 8V5M9 13.2h.01M15 13.2h.01M9.5 16.3h5"/><circle cx="12" cy="4" r="1"/>',
-    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    download: '<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
   function paintIcons(root) { (root || document).querySelectorAll("i[data-icon]").forEach(function (e) { e.outerHTML = svg(e.getAttribute("data-icon")); }); }
@@ -82,7 +83,7 @@
   }
   function fetchUsage(key) {
     if (MOCK) return new Promise(function (ok) { setTimeout(function () {
-      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"] }); }, 400); });
+      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano", "gpt-image-1"] }); }, 400); });
     trace = [];
     return tryTokenEndpoint(key).then(function (d) { return d || tryBillingEndpoints(key); }).then(function (d) {
       if (params.get("debug") === "1") { $("debug").hidden = false; $("debug").textContent = JSON.stringify(trace, null, 1); }
@@ -92,7 +93,7 @@
   }
   // OpenAI-standard model list (also used as the live ping).
   function fetchModels(key) {
-    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"], ms: 90 + Math.round(Math.random() * 60) });
+    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano", "gpt-image-1"], ms: 90 + Math.round(Math.random() * 60) });
     var t0 = performance.now();
     return fetch(cfg.GATEWAY_URL + "/v1/models", { headers: { Authorization: "Bearer " + key } })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -276,7 +277,7 @@
     sel.textContent = "";
     ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
     sel.value = ids.indexOf(cur) >= 0 ? cur : (ids.indexOf("deepseek-flash") >= 0 ? "deepseek-flash" : ids[0]);
-    buildPop(); updateImgNote();
+    buildPop(); updateImgNote(); syncImageMode();
   }
   // Small model menu that opens right under the model button (not a full-screen sheet).
   function buildPop() {
@@ -491,6 +492,51 @@
     showTab(b.getAttribute("data-tab"));
   });
   $("goKey").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
+  // ---------- picture mode (shown only when the key's model list contains an image model) ----------
+  function imageModelIds() { return modelIds().filter(function (m) { return /image|dall-?e/i.test(m); }); }
+  var imgBusy = false;
+  function setChatMode(mode) {
+    var card = $("chatCard"); card.setAttribute("data-mode", mode);
+    document.querySelectorAll("#chatMode button").forEach(function (b) { var on = b.getAttribute("data-mode") === mode; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
+    $("imgPane").hidden = mode !== "image";
+  }
+  function syncImageMode() {
+    var ids = imageModelIds(), sel = $("imgModel"), cur = sel.value;
+    $("chatMode").hidden = !ids.length;
+    sel.textContent = ""; ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
+    if (ids.indexOf(cur) >= 0) sel.value = cur;
+    if (!ids.length) setChatMode("chat");
+  }
+  document.querySelectorAll("#chatMode button").forEach(function (b) { b.addEventListener("click", function () { setChatMode(b.getAttribute("data-mode")); syncChatKeyNote(); }); });
+  // Always send the same simple request; the answer may carry a base64 picture or a link, depending on the model.
+  function createPicture(key, model, prompt, size) {
+    if (MOCK) return new Promise(function (ok) { setTimeout(function () {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d6bfe"/><stop offset=".5" stop-color="#a78bfa"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient></defs><rect width="512" height="512" fill="url(#g)"/><text x="256" y="262" font-size="26" fill="#fff" text-anchor="middle" font-family="sans-serif">demo picture</text></svg>';
+      ok("data:image/svg+xml;base64," + btoa(svg)); }, 1200); });
+    var body = { model: model, prompt: prompt, n: 1 }; if (size) body.size = size;
+    return fetch(cfg.GATEWAY_URL + "/v1/images/generations", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.text().then(function (t) { var j = null; try { j = JSON.parse(t); } catch (e) {}
+        if (!r.ok) { var m = j && j.error && (j.error.message || j.error) || ("error " + r.status); var er = new Error(typeof m === "string" ? m : JSON.stringify(m)); er.status = r.status; throw er; }
+        var d = j && j.data && j.data[0]; if (!d) throw new Error("The gateway sent no picture.");
+        return d.b64_json ? "data:image/png;base64," + d.b64_json : d.url; }); });
+  }
+  $("imgGo").addEventListener("click", function () {
+    if (imgBusy) return;
+    var key = state.key || $("keyInput").value.trim(), prompt = $("imgPrompt").value.trim(), out = $("imgOut"), btn = this;
+    if (!MOCK && !key) { syncChatKeyNote(); return; }
+    if (!prompt) { out.textContent = ""; out.appendChild(el("p", "error", "Describe the picture first.")); return; }
+    imgBusy = true; btn.disabled = true; btn.querySelector("span").textContent = "Creating..."; $("imgSave").hidden = true;
+    out.textContent = ""; var wait = el("p", "muted"); wait.innerHTML = '<span class="dots">Creating your picture</span>'; out.appendChild(wait);
+    createPicture(key, $("imgModel").value, prompt, $("imgSize").value).then(function (src) {
+      out.textContent = ""; var im = document.createElement("img"); im.alt = "Generated picture"; im.src = src; out.appendChild(im);
+      var sv = $("imgSave"); sv.href = src; sv.hidden = false; if (!MOCK) refresh(true);
+    }).catch(function (err) {
+      out.textContent = ""; out.appendChild(el("p", "error", err.status === 401 ? "The gateway says this key is not valid."
+        : err.status === 402 || err.status === 403 || /quota|balance/i.test(err.message) ? "Out of tokens or not allowed for this model. " + err.message
+        : "Could not create the picture (" + (err.message || "network error") + ")."));
+    }).then(function () { imgBusy = false; btn.disabled = false; btn.querySelector("span").textContent = "Create picture"; });
+  });
+
   // ---------- start page ----------
   var BASE_V1 = cfg.GATEWAY_URL + "/v1";
   function priceText(id) { var p = cfg.PRICES[id]; return p ? "$" + p.input + " in · $" + p.output + " out" : "price: ask the owner"; }
