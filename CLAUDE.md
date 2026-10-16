@@ -5,11 +5,11 @@ The owner's own LLM API gateway (**new-api on Railway + DeepSeek**) plus a membe
 store stays untouched. Team giveaway / own use only: **not for resale** unless the owner raises it.
 
 ## Read first
-1. `notes/HANDOFF.md`: current state, decisions, next steps, mistakes to avoid.
+1. `notes/HANDOFF.md`: current state, decisions, next steps, mistakes to avoid (start with its **last section**, which is the most recent).
 2. `notes/BOOK_BRIEF.md`: brief for the Burmese PDF book (`notes/book/` holds its build files).
 
 ## How to work with the owner
-- Reply in **Burmese**, mentor / co-founder tone. Explain the *why*. One step at a time, no walls of text.
+- Reply in **Burmese** every time, even when answering automated notifications; mentor / co-founder tone. Explain the *why*. One step at a time, no walls of text.
 - The owner works from a phone/tablet and sends screenshots. Read typos generously.
 - Be honest about what you could not verify. The sandbox cannot reach Railway, the gateway or DeepSeek.
 - **Never ask the owner to paste secrets** (API keys, passwords, admin tokens) into chat. Say where they paste them themselves.
@@ -18,7 +18,8 @@ store stays untouched. Team giveaway / own use only: **not for resale** unless t
 
 ## Git / release workflow
 - Work on the branch the session assigns, commit clearly, push with `git push -u origin <branch>`.
-- **Do not open a PR unless the owner says "Pr"**.
+- **Do not open a PR unless the owner says "Pr"**. "Pr and merge" means: open a PR into `main` and squash-merge it. Pages deploys from `main`.
+- Details for the next session (live URL, tabs, what is verified and what is not, git gotchas): the **last section of `notes/HANDOFF.md`**.
 
 ## Design language (dashboard)
 Match the store: soft lavender glassmorphism with violet accents (royal violet `#6231c8`, page tint `#f6f3fd`,

@@ -142,8 +142,8 @@
   // "Powered by": one small badge per company that has a model on this key (DeepSeek by default).
   function updatePowered() {
     var list = [], seen = {};
-    modelIds().forEach(function (m) { var p = providerOf(m); if (!seen[p.key]) { seen[p.key] = 1; list.push(p); } });
-    if (!list.length) list = [providerOf("deepseek")];
+    modelIds().forEach(function (m) { var p = providerOf(m); if (!seen[p.key] && (cfg.POWERED_HIDE || []).indexOf(p.key) < 0) { seen[p.key] = 1; list.push(p); } });
+    $("powered").hidden = !list.length; // nothing to credit until a key has been checked
     var box = $("pchips"); box.textContent = "";
     list.forEach(function (p) {
       var c = el("span", "pbadge"), lg = el("span", "plg");
@@ -425,7 +425,7 @@
       // Ask for the model list first so everything is drawn once and the numbers can animate.
       return fetchModels(key).then(function (m) { applyModels(m); renderKey(d); renderModels(); fillChatModels(); startLive(); });
     }).catch(function (err) {
-      state.data = null; $("emptyState").hidden = false; $("keyData").hidden = true; $("modelList").textContent = ""; $("modelHint").hidden = true;
+      state.data = null; state.models = []; updatePowered(); $("emptyState").hidden = false; $("keyData").hidden = true; $("modelList").textContent = ""; $("modelHint").hidden = true;
       fail(err.message === "BAD_KEY" ? "The gateway says this key is not valid. Check it and try again."
         : err.message === "NOT_CONFIGURED" ? "The gateway did not return info for this key. (Owner: open this page with ?debug=1.)"
         : "Could not check this key. Try again.");
@@ -455,5 +455,5 @@
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + b.getAttribute("data-tab")); });
     window.scrollTo(0, 0);
   });
-  loadChat(); fillChatModels(); updatePowered(); paintIcons();
+  loadChat(); fillChatModels(); paintIcons();
 })();

@@ -16,6 +16,8 @@ window.GPH_CONFIG = {
     "deepseek-flash":  { tag: "Everyday · lowest price", accent: "sky" },
     "deepseek-v4-pro": { tag: "Advanced · higher price", accent: "violet" }
   },
+  // Companies that must NOT get a "Powered by" badge in the header (their models still show on the Models tab).
+  POWERED_HIDE: ["openai"],
   // How often the Models tab re-checks the gateway while the page is open and visible.
   LIVE_EVERY_MS: 60000
 };
