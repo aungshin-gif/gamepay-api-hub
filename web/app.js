@@ -540,11 +540,39 @@
     document.querySelectorAll("#chatMode button").forEach(function (b) { var on = b.getAttribute("data-mode") === mode; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
     $("imgPane").hidden = mode !== "image";
   }
+  // Pretty dropdown with logos for the Picture pane. The real <select> stays (hidden) so the value logic does not change.
+  var fsels = [];
+  function fancySelect(sel, describe) {
+    var wrap = sel.parentNode.querySelector(".fsel");
+    if (!wrap) {
+      wrap = el("div", "fsel"); sel.parentNode.appendChild(wrap); sel.classList.add("fs-native"); sel.setAttribute("tabindex", "-1"); sel.setAttribute("aria-hidden", "true");
+      var bt = el("button", "mpick"); bt.type = "button"; bt.setAttribute("aria-haspopup", "listbox"); bt.setAttribute("aria-expanded", "false");
+      var pp = el("div", "pop fpop"); pp.setAttribute("role", "listbox"); pp.hidden = true; wrap.appendChild(bt); wrap.appendChild(pp);
+      bt.addEventListener("click", function (e) { e.stopPropagation(); var open = pp.hidden; closeFsels(); if (open) { pp.hidden = false; bt.setAttribute("aria-expanded", "true"); } });
+      pp.addEventListener("click", function (e) { var o = e.target.closest(".opt"); if (!o) return; sel.value = o.dataset.v; sel.dispatchEvent(new Event("change")); closeFsels(); bt.focus(); });
+      fsels.push(wrap); sel.addEventListener("change", function () { fancySelect(sel, describe); });
+    }
+    var bt2 = wrap.querySelector(".mpick"), pp2 = wrap.querySelector(".pop"); bt2.textContent = ""; pp2.textContent = "";
+    var cur = describe(sel.value, true), lg = el("span", "mpl"); lg.appendChild(cur.logo); bt2.appendChild(lg); bt2.appendChild(el("span", "", cur.name)); var ch = el("i"); ch.innerHTML = svg("chevron"); bt2.appendChild(ch);
+    Array.prototype.forEach.call(sel.options, function (o) {
+      var d = describe(o.value), on = o.value === sel.value, b = el("button", "opt" + (on ? " on" : "")); b.type = "button"; b.dataset.v = o.value; b.setAttribute("role", "option"); b.setAttribute("aria-selected", on ? "true" : "false");
+      var l2 = el("span", "olg"); l2.appendChild(d.logo); b.appendChild(l2);
+      var tx = el("span", "otx"); tx.appendChild(el("b", "", d.name)); tx.appendChild(el("span", "otag", d.sub)); b.appendChild(tx);
+      var rt = el("span", "ort"); if (on) { var ck = el("span", "ock"); ck.innerHTML = svg("check"); rt.appendChild(ck); } b.appendChild(rt); pp2.appendChild(b);
+    });
+  }
+  function closeFsels() { fsels.forEach(function (w) { w.querySelector(".pop").hidden = true; w.querySelector(".mpick").setAttribute("aria-expanded", "false"); }); }
+  document.addEventListener("click", closeFsels);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeFsels(); });
+  function describeImgModel(m) { var p = cfg.PRICES[m]; return { name: m || "no picture model", logo: m ? logoFor(m, 20) : el("span"), sub: p ? "$" + p.input + " in · $" + p.output + " out" : providerOf(m || "").name + " · price: ask the owner" }; }
+  var SIZE_INFO = { "": ["Default", "Let the model decide", "cube"], "1024x1024": ["Square 1024", "1024 x 1024", "image"] };
+  function describeImgSize(v) { var i = SIZE_INFO[v] || [v, "", "image"], g = el("span", "szi"); g.innerHTML = svg(i[2]); return { name: i[0], logo: g, sub: i[1] }; }
   function syncImageMode() {
     var ids = imageModelIds(), sel = $("imgModel"), cur = sel.value;
     $("chatMode").hidden = !ids.length;
     sel.textContent = ""; ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
     if (ids.indexOf(cur) >= 0) sel.value = cur;
+    fancySelect(sel, describeImgModel); fancySelect($("imgSize"), describeImgSize);
     if (!ids.length) setChatMode("chat");
   }
   document.querySelectorAll("#chatMode button").forEach(function (b) { b.addEventListener("click", function () { setChatMode(b.getAttribute("data-mode")); syncChatKeyNote(); }); });
@@ -572,7 +600,7 @@
     imgBusy = true; btn.disabled = true; btn.querySelector("span").textContent = "Creating..."; $("imgSave").hidden = true;
     out.textContent = ""; var wait = el("p", "muted"); wait.innerHTML = '<span class="dots">Creating your picture</span>'; out.appendChild(wait);
     createPicture(key, $("imgModel").value, prompt, $("imgSize").value).then(function (src) {
-      out.textContent = ""; var im = document.createElement("img"); im.alt = "Generated picture"; im.src = src; out.appendChild(im);
+      out.textContent = ""; var im = document.createElement("img"); im.alt = "Generated picture"; im.src = src; out.appendChild(im); setTimeout(function () { out.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60);
       var sv = $("imgSave"); sv.href = src; sv.hidden = false; if (!MOCK) refresh(true);
     }).catch(function (err) {
       out.textContent = ""; out.appendChild(el("p", "error", err.status === 401 ? "The gateway says this key is not valid."
@@ -623,8 +651,13 @@
     var tx = el("span", "pbt"); tx.appendChild(el("b", "", p.name)); tx.appendChild(el("span", "muted", list.length + " models · " + p.blurb)); b.appendChild(tx);
     var go = el("span", "pbg"); go.innerHTML = svg("chevron"); b.appendChild(go);
     b.addEventListener("click", function () {
-      var rows = list.map(function (m) {
-        var r = el("div", "mrow"), t = el("div", "mtx"); t.appendChild(el("b", "", m.id)); t.appendChild(el("span", "muted", m.tag + " · " + priceText(m.id))); r.appendChild(t);
+      var rows = list.map(function (m, i) {
+        var info = (cfg.MODEL_INFO || {})[m.id] || {}, kind = kindOf(m.id);
+        var r = el("div", "mrow a-" + (info.accent || p.accent)); r.style.setProperty("--i", i);
+        var lg = el("span", "mrl"); lg.appendChild(logoFor(m.id, 22)); r.appendChild(lg);
+        var t = el("div", "mtx"); t.appendChild(el("b", "", m.id));
+        var meta = el("span", "mmeta"); meta.appendChild(el("span", "mtagp", m.tag));
+        meta.appendChild(el("span", "mprice", kind === "video" ? "video: not in dashboard" : priceText(m.id))); t.appendChild(meta); r.appendChild(t);
         var c = el("button", "icon-btn"); c.type = "button"; c.setAttribute("data-copytext", m.id); c.setAttribute("aria-label", "Copy " + m.id); c.innerHTML = svg("copy"); r.appendChild(c); return r;
       });
       rows.push(note("Which of these you can use depends on your key. Premium models are only on some keys."));
