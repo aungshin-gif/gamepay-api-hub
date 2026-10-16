@@ -142,7 +142,7 @@
   // "Powered by": one small badge per company that has a model on this key (DeepSeek by default).
   function updatePowered() {
     var list = [], seen = {};
-    modelIds().forEach(function (m) { var p = providerOf(m); if (!seen[p.key]) { seen[p.key] = 1; list.push(p); } });
+    modelIds().forEach(function (m) { var p = providerOf(m); if (!seen[p.key] && (cfg.POWERED_HIDE || []).indexOf(p.key) < 0) { seen[p.key] = 1; list.push(p); } });
     $("powered").hidden = !list.length; // nothing to credit until a key has been checked
     var box = $("pchips"); box.textContent = "";
     list.forEach(function (p) {
