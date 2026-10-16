@@ -16,6 +16,8 @@ body {
     radial-gradient(700px 420px at 50% 115%, rgba(45, 212, 191, .16), transparent 60%), var(--page);
 }
 svg.ic { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.2em; shape-rendering: geometricPrecision; }
+svg.ic .f { fill: currentColor; fill-opacity: .14; stroke: none; } .tile .ti svg.ic .f { fill-opacity: .26; } .primary svg.ic .f { fill-opacity: .22; }
+.keybar label svg.ic { width: 1.45em; height: 1.45em; color: var(--blue); stroke-width: 2; }
 .app { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100vh; align-content: start; }
 .side { padding: 12px 14px 0; }
 .brand { display: flex; align-items: center; gap: 12px; } .brand b { display: block; font-size: 17px; }

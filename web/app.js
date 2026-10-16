@@ -9,28 +9,28 @@
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
-    cube: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 12l9-5M12 12v10M12 12L3 7"/>',
+    cube: '<path class="f" d="M12 2.8l8 4.4v9.6l-8 4.4-8-4.4V7.2z"/><path d="M12 2.8l8 4.4v9.6l-8 4.4-8-4.4V7.2z"/><path d="M4 7.2l8 4.4 8-4.4M12 11.6v9.6"/>',
     chat: '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/>',
     book: '<path d="M4 5a1 1 0 0 1 1-1h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H5a1 1 0 0 1-1-1z"/><path d="M20 5a1 1 0 0 0-1-1h-6M20 5v12a1 1 0 0 1-1 1h-6"/>',
-    key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/>',
-    eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    key: '<circle class="f" cx="7.5" cy="15.5" r="4.6"/><circle cx="7.5" cy="15.5" r="4.6"/><circle cx="7.5" cy="15.5" r="1.1"/><path d="M10.9 12.1L20.5 2.5M16.2 6.8l3 3M13.4 9.6l2 2"/>',
+    eye: '<path class="f" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     "eye-off": '<path d="M3 3l18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 7.5A17 17 0 0 0 2 12s4 7 10 7a9.6 9.6 0 0 0 4-.9"/>',
-    copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
-    check: '<path d="M4 12l5 5L20 6"/>',
-    refresh: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>',
-    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    activity: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
-    shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-    alert: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
-    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    copy: '<rect class="f" x="9" y="9" width="11.5" height="11.5" rx="2.5"/><rect x="9" y="9" width="11.5" height="11.5" rx="2.5"/><path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 5 4h8a1.5 1.5 0 0 1 1.5 1.5V6"/>',
+    check: '<path d="M4.5 12.5l4.8 4.8L19.5 7"/>',
+    refresh: '<path d="M20 12a8 8 0 0 1-13.7 5.6M4 12a8 8 0 0 1 13.7-5.6"/><path d="M18 3.5v3.8h-3.8M6 20.5v-3.8h3.8"/>',
+    clock: '<circle class="f" cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+    activity: '<path d="M2.5 12h4.2l2.6-7 5 14 2.6-7h4.6"/>',
+    shield: '<path class="f" d="M12 2.8l7.5 2.8v5.7c0 4.7-3.2 8.2-7.5 9.9-4.3-1.7-7.5-5.2-7.5-9.9V5.6z"/><path d="M12 2.8l7.5 2.8v5.7c0 4.7-3.2 8.2-7.5 9.9-4.3-1.7-7.5-5.2-7.5-9.9V5.6z"/><path d="M8.7 12.2l2.4 2.4 4.4-4.6"/>',
+    alert: '<path class="f" d="M12 3.5l9.5 16.5h-19z"/><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.2M12 17.3h.01"/>',
+    calendar: '<rect class="f" x="3.5" y="5" width="17" height="15.5" rx="3"/><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.4h.01M12 17.4h.01"/>',
     send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
-    trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    trash: '<path class="f" d="M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5z"/><path d="M6 6.5l.9 12.6a2 2 0 0 0 2 1.9h6.2a2 2 0 0 0 2-1.9L18 6.5"/><path d="M4 6.5h16M9.5 6.5V4.6a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.9M10 11v6M14 11v6"/>',
     image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',
     play: '<path d="M7 4l13 8-13 8z"/>',
     chevron: '<path d="M6 9l6 6 6-6"/>',
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
-    paste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/>'
+    paste: '<rect class="f" x="5" y="4" width="14" height="17" rx="2.5"/><rect x="5" y="4" width="14" height="17" rx="2.5"/><rect x="9" y="2.5" width="6" height="4" rx="1.3"/><path d="M9 11.5h6M9 15.5h4"/>'
   };
   function svg(name) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"; }
   function paintIcons(root) { (root || document).querySelectorAll("i[data-icon]").forEach(function (e) { e.outerHTML = svg(e.getAttribute("data-icon")); }); }

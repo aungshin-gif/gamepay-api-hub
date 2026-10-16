@@ -265,3 +265,8 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - **My key** card now has a second row: **Paste** (reads the clipboard into the key box, needs the browser's clipboard permission, does not check the key by itself), **Clear** (empties the key box, stops the live ping, hides the key data and model boxes; chat text on the device is kept) and **Check**. The "Check" label is no longer hidden on phones.
 - All buttons got a matte, soft-touch look (faint top light, thin darker bottom edge, soft shadow, pressed buttons sink in). It is still not glossy, in line with the earlier "flat, not glossy" request; tell the owner if they want it flatter or richer.
 - Checked with Playwright (demo mode) at 320, 390 and 820 px: paste, clear, empty clipboard message, no console errors, no horizontal scroll. Not checked: real clipboard permission prompt on the owner's tablet, real device look.
+
+## Update 2026-10-16 (icons)
+
+- Icons in `web/app.js` (`ICONS`) were redrawn as soft two-tone icons: a faint filled shape (class `f`, styled in `styles.css` as `svg.ic .f`) under a clean 1.8 px outline. Redrawn: key, eye, copy, check, refresh, clock, shield, alert, calendar, activity, cube, trash, paste. Others (chat, book, image, send, stop, play, chevron, x, eye-off) are unchanged.
+- The key icon next to "Your API key" is larger and blue. Checked at 320/390 px in demo mode (no overflow, no console errors); real device look not checked.
