@@ -307,3 +307,10 @@ body.noscroll { overflow: hidden; }
 .imgout .error { width: 100%; text-align: left; }
 .chatcard[data-mode="image"] .msgs, .chatcard[data-mode="image"] .composer, .chatcard[data-mode="image"] .attach-row, .chatcard[data-mode="image"] #imgNote, .chatcard[data-mode="image"] .top .right { display: none; }
 @media (max-width: 360px) { .iov { font-size: 11.5px; } .mname { font-size: 14px; } .iol { font-size: 9.5px; } }
+
+/* copy button on chat messages */
+.msg { position: relative; } .msg.hascopy { padding-right: 44px; }
+.mcopy { position: absolute; top: 7px; right: 7px; width: 28px; height: 28px; padding: 0; border-radius: 9px; background: rgba(255, 255, 255, .75); color: var(--blue-deep) !important; border: 1px solid var(--border); box-shadow: none; }
+.mcopy svg.ic { width: 15px; height: 15px; }
+.msg.user .mcopy { background: rgba(255, 255, 255, .18); color: #fff !important; border-color: rgba(255, 255, 255, .35); }
+.mcopy:not([disabled]):active { transform: scale(.94); }

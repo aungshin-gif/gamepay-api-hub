@@ -305,3 +305,7 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - **Model kinds** (`kindOf()` in `web/app.js`): text models go in the chat box and get a Test button; `image`/`dall-e` models are used only in Chat > Picture; `sora`/`video` models are shown but cannot be used here. `sora*` and `dall-e*` now count as OpenAI (they showed as "Other" and put an "Other" badge in the header).
 - The owner added `gpt-4.1-mini`, `gpt-image-1-mini` and `sora-2-pro` to the key. The Picture mode (see the earlier update) therefore appears for that key once this is deployed. Not yet tried against the real gateway: the real images answer, the price, and whether `size` is accepted.
 - `START_MODELS.openai` in `web/config.js` now starts with `gpt-4.1-mini` and `gpt-image-1-mini`. OpenAI prices are still unset.
+
+## Update 2026-10-16 (copy buttons)
+
+- Every chat message (yours and the model's, also after a reload) now has a small copy button in its top-right corner (`addCopy()` in `web/app.js`). It copies only the message text, not the token count or pictures. The Picture pane has a **Copy prompt** button next to "Create picture". Checked in demo mode at 320 and 390 px (clipboard contents verified, no console errors); the real tablet's clipboard behaviour was not checked.

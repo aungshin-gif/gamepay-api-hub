@@ -282,12 +282,23 @@
   function saveChat() { // text only. Pictures are never written to storage.
     try { localStorage.setItem(STORE, JSON.stringify({ m: $("chatModel").value, msgs: chat.msgs.slice(-40).map(function (x) { return { r: x.role, t: x.text, i: (x.images || []).length + (x.nImg || 0) }; }) })); } catch (e) {}
   }
+  // Small copy button on a chat message. It copies only the message text (not the token count or pictures).
+  function addCopy(d) {
+    if (d.querySelector(".mcopy")) return;
+    var b = el("button", "mcopy"); b.type = "button"; b.setAttribute("aria-label", "Copy message"); b.title = "Copy"; b.innerHTML = svg("copy"); d.classList.add("hascopy"); d.appendChild(b);
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var c = d.cloneNode(true); Array.prototype.forEach.call(c.querySelectorAll(".mcopy, small, .thumbs, .imgnote, .dots"), function (n) { n.remove(); });
+      var text = c.textContent.trim(); if (!text) return;
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { b.innerHTML = svg("check"); setTimeout(function () { b.innerHTML = svg("copy"); }, 1400); }).catch(function () { b.textContent = "!"; });
+    });
+  }
   function bubble(kind, text, images, nImg) {
     chatEmptyEl.hidden = true;
     var d = el("div", "msg " + kind);
     if (images && images.length) { var g = el("div", "thumbs"); images.forEach(function (u) { var im = document.createElement("img"); im.src = u; im.alt = "attached picture"; g.appendChild(im); }); d.appendChild(g); }
     else if (nImg) d.appendChild(el("div", "imgnote", nImg + " picture" + (nImg > 1 ? "s" : "") + " (not saved)"));
-    if (text) d.appendChild(el("span", "", text));
+    if (text) { d.appendChild(el("span", "", text)); addCopy(d); }
     $("msgs").appendChild(d); window.scrollTo({ top: document.body.scrollHeight }); return d;
   }
   function loadChat() {
@@ -438,7 +449,7 @@
       answer += dl.content; textNode.textContent = answer; window.scrollTo({ top: document.body.scrollHeight });
     };
     (MOCK ? streamMock(onDelta, chat.ctl.signal) : streamReal(key, model, apiMessages(), onDelta, chat.ctl.signal)).then(function (res) {
-      if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", text: answer, images: [] }); }
+      if (!answer) { bot.textContent = "(empty reply)"; } else { chat.msgs.push({ role: "assistant", text: answer, images: [] }); addCopy(bot); }
       if (res && res.usage) { var u = res.usage, pi = u.prompt_tokens || 0, po = u.completion_tokens || 0, st = mstat(model); st.in += pi; st.out += po; renderModels();
         if (u.total_tokens) { var sm = document.createElement("small"); sm.textContent = u.total_tokens + " tokens"; bot.appendChild(sm); } }
       saveChat(); if (!MOCK) refresh(true);
@@ -549,6 +560,10 @@
         var d = j && j.data && j.data[0]; if (!d) throw new Error("The gateway sent no picture.");
         return d.b64_json ? "data:image/png;base64," + d.b64_json : d.url; }); });
   }
+  $("imgCopy").addEventListener("click", function () {
+    var t = $("imgPrompt").value.trim(), b = this, lab = b.querySelector("span"); if (!t) return;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { lab.textContent = "Copied"; setTimeout(function () { lab.textContent = "Copy prompt"; }, 1400); }).catch(function () { lab.textContent = "Press and hold the box to copy"; });
+  });
   $("imgGo").addEventListener("click", function () {
     if (imgBusy) return;
     var key = state.key || $("keyInput").value.trim(), prompt = $("imgPrompt").value.trim(), out = $("imgOut"), btn = this;
