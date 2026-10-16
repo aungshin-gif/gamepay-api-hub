@@ -50,9 +50,16 @@
 
     <!-- Models -->
     <section class="panel" id="tab-models">
-      <div class="card">
+      <div class="card livecard">
         <div class="top"><h2><span class="livedot" id="liveDot"></span>Live status</h2><span class="chip idle" id="pingChip">not checked</span></div>
         <p class="muted" id="liveInfo">Paste your key above and tap Check to see which models are live.</p>
+        <div class="lstats">
+          <div><span class="iol">Endpoint ping</span><b id="lsPing">--</b></div>
+          <div><span class="iol">Availability</span><b id="lsAvail">--</b></div>
+          <div><span class="iol">Checks</span><b id="lsCount">0</b></div>
+        </div>
+        <div class="strip" id="pingStrip" role="img" aria-label="Recent gateway checks on this device"></div>
+        <p class="hint">Recent checks of the gateway, kept on this device only (new checks are added while this page is open).</p>
       </div>
       <div class="skel" id="skel" hidden aria-hidden="true"><div class="sk sk-sq"></div><div class="sk sk-sq"></div></div>
       <div id="modelList" class="list"></div>

@@ -130,9 +130,11 @@
   function providerOf(id) {
     id = String(id).toLowerCase();
     if (/^deepseek/.test(id)) return { key: "deepseek", name: "DeepSeek", accent: "sky", logo: "assets/deepseek.png" };
-    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
+    if (/^(gpt|chatgpt|o\d|text-|davinci|codex|dall-?e|sora)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
     return { key: "other", name: "Other", accent: "violet", logo: null };
   }
+  // What a model is for: only "text" models can be used in the chat box and the Test button.
+  function kindOf(id) { id = String(id).toLowerCase(); return /image|dall-?e/.test(id) ? "image" : /sora|video/.test(id) ? "video" : "text"; }
   function logoFor(m, h) {
     var p = providerOf(m); if (p.logo) return logoImg(h, p.logo);
     var g = el("span", "glyph", p.name.charAt(0)); g.style.fontSize = Math.round(h * .62) + "px"; return g;
@@ -163,8 +165,31 @@
   function two(n) { return (n < 10 ? "0" : "") + n; }
 
   // ---------- Models tab (the main page) ----------
+  // ---------- gateway check history (kept on this device only) ----------
+  var HIST_KEY = "gph_ping_hist", HIST_MAX = 60, hist = [];
+  function loadHist() {
+    if (MOCK) { var t0 = Date.now(); for (var i = 0; i < 44; i++) hist.push([t0 - (44 - i) * 60000, i === 12 || i === 31 ? null : 90 + Math.round(Math.random() * 520)]); return; }
+    try { var j = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); if (Array.isArray(j)) hist = j.filter(function (r) { return Array.isArray(r) && r.length === 2; }).slice(-HIST_MAX); } catch (e) {}
+  }
+  function renderStrip() {
+    var box = $("pingStrip"); box.textContent = "";
+    for (var i = 0; i < HIST_MAX - hist.length; i++) box.appendChild(document.createElement("i"));
+    hist.forEach(function (r) {
+      var b = document.createElement("i"); b.className = "s-" + (r[1] == null ? "bad" : powerOf(r[1], "ping")[1]);
+      b.title = new Date(r[0]).toLocaleTimeString() + (r[1] == null ? " · unreachable" : " · " + r[1] + " ms"); box.appendChild(b);
+    });
+    var ok = hist.filter(function (r) { return r[1] != null; }).length;
+    $("lsAvail").textContent = hist.length ? (ok / hist.length * 100).toFixed(1) + "%" : "--";
+    $("lsCount").textContent = String(hist.length); $("lsPing").textContent = state.ping != null ? state.ping + " ms" : "--";
+  }
+  function pushPing(ms) {
+    hist.push([Date.now(), ms]); hist = hist.slice(-HIST_MAX);
+    if (!MOCK) { try { localStorage.setItem(HIST_KEY, JSON.stringify(hist)); } catch (e) {} }
+    renderStrip();
+  }
   function applyModels(m) {
     state.models = m.ids; state.ping = m.ms; state.lastAt = new Date();
+    pushPing(m.ms);
     var pc = $("pingChip"), pw = powerOf(m.ms, "ping");
     pc.textContent = m.ms != null ? "online · " + m.ms + " ms" : "unreachable"; pc.className = "chip" + (m.ms != null ? (pw[1] === "ok" ? "" : " " + pw[1]) : " off");
     $("liveDot").className = "livedot" + (m.ms != null ? " on" : " off");
@@ -177,14 +202,18 @@
     if (!ids.length) { box.className = "list"; return; }
     box.className = "mgrid";
     ids.forEach(function (m) {
-      var p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, st = mstat(m);
-      var d = el("div", "mbox a-" + (info.accent || providerOf(m).accent));
-      var head = el("div", "mhead"); head.appendChild(el("span", "mlogo")); head.firstChild.appendChild(logoFor(m, 28)); head.appendChild(pchip(m)); d.appendChild(head);
-      var mid = el("div", "mmid"); mid.appendChild(el("div", "mname", m)); mid.appendChild(el("div", "mtag", info.tag || (providerOf(m).name + (p ? "" : " · price not set")))); d.appendChild(mid);
+      var p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, st = mstat(m), prov = providerOf(m);
+      var d = el("div", "mbox a-" + (info.accent || prov.accent));
+      var head = el("div", "mhead"), lg = el("span", "mlogo"); lg.appendChild(logoFor(m, 22)); head.appendChild(lg); head.appendChild(pchip(m)); d.appendChild(head);
+      var nm = el("div", "mname", m); nm.title = m; d.appendChild(nm);
+      d.appendChild(el("div", "mtag", info.tag || (prov.name + (p ? "" : " · price not set"))));
       var io = el("div", "io");
-      [["Input", p ? "$" + p.input : "--", st.in], ["Output", p ? "$" + p.output : "--", st.out]].forEach(function (r) {
-        var b = el("div"); b.setAttribute("data-l", r[0]); b.setAttribute("data-s", r[0] === "Input" ? "In" : "Out"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1] + " /1M")); b.appendChild(el("span", "ios", fmt(r[2]) + " tokens")); io.appendChild(b);
+      [["Input", p ? "$" + p.input + "/1M" : "--"], ["Output", p ? "$" + p.output + "/1M" : "--"]].forEach(function (r) {
+        var b = el("div"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1])); io.appendChild(b);
       }); d.appendChild(io);
+      var kind = kindOf(m);
+      if (kind === "text") d.appendChild(el("div", "mused", fmt(st.in) + " in · " + fmt(st.out) + " out tokens"));
+      if (kind !== "text") { d.appendChild(el("div", "mused", kind === "image" ? "Use it in Chat, Picture tab." : "Video model: not available in this dashboard.")); box.appendChild(d); return; }
       var foot = el("div", "mfoot"), btn = el("button", "small"), res = el("span", "ms");
       btn.type = "button"; btn.disabled = st.testing; btn.innerHTML = svg("play") + "<span>Test</span>";
       if (st.testing) res.textContent = "testing..."; else if (st.failed) { res.className = "ms bad"; res.textContent = st.failed; } else if (st.ms != null) { res.className = "ms ok"; res.textContent = st.ms + " ms"; }
@@ -272,7 +301,7 @@
     } catch (e) {}
   }
   function fillChatModels() {
-    var sel = $("chatModel"), cur = sel.value || chat.savedModel, ids = modelIds().slice();
+    var sel = $("chatModel"), cur = sel.value || chat.savedModel, ids = modelIds().filter(function (m) { return kindOf(m) === "text"; });
     if (!ids.length) ids = Object.keys(cfg.PRICES);
     sel.textContent = "";
     ids.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o); });
@@ -493,7 +522,7 @@
   });
   $("goKey").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
   // ---------- picture mode (shown only when the key's model list contains an image model) ----------
-  function imageModelIds() { return modelIds().filter(function (m) { return /image|dall-?e/i.test(m); }); }
+  function imageModelIds() { return modelIds().filter(function (m) { return kindOf(m) === "image"; }); }
   var imgBusy = false;
   function setChatMode(mode) {
     var card = $("chatCard"); card.setAttribute("data-mode", mode);
@@ -621,5 +650,6 @@
   $("startBtn").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
   if (cfg.SUPPORT_TELEGRAM) { var tgb = $("tgBtn"); tgb.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; tgb.hidden = false; }
 
+  loadHist(); renderStrip();
   document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons();
 })();

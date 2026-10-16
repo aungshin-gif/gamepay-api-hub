@@ -27,6 +27,8 @@ window.GPH_CONFIG = {
       { id: "deepseek-v4-pro", tag: "Advanced" }
     ],
     openai: [
+      { id: "gpt-4.1-mini",       tag: "Light" },
+      { id: "gpt-image-1-mini",   tag: "Pictures (Chat, Picture tab)" },
       { id: "gpt-6-luna",    tag: "Light" },
       { id: "gpt-5.6-luna",  tag: "Light" },
       { id: "gpt-5.6-terra", tag: "Balanced" },
