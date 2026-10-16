@@ -76,7 +76,7 @@
   }
   function fetchUsage(key) {
     if (MOCK) return new Promise(function (ok) { setTimeout(function () {
-      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-4o-mini"] }); }, 400); });
+      ok({ name: "demo-member", active: true, limitUsd: 1.2, usedUsd: 0.43, expires: Date.now() + 25 * 864e5, models: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"] }); }, 400); });
     trace = [];
     return tryTokenEndpoint(key).then(function (d) { return d || tryBillingEndpoints(key); }).then(function (d) {
       if (params.get("debug") === "1") { $("debug").hidden = false; $("debug").textContent = JSON.stringify(trace, null, 1); }
@@ -86,7 +86,7 @@
   }
   // OpenAI-standard model list (also used as the live ping).
   function fetchModels(key) {
-    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-4o-mini"], ms: 90 + Math.round(Math.random() * 60) });
+    if (MOCK) return Promise.resolve({ ids: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna", "gpt-5.4-nano"], ms: 90 + Math.round(Math.random() * 60) });
     var t0 = performance.now();
     return fetch(cfg.GATEWAY_URL + "/v1/models", { headers: { Authorization: "Bearer " + key } })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -118,11 +118,12 @@
   }
   function tick(node, key, to, f) { countUp(node, to, f, state.prev[key] != null ? state.prev[key] : 0); state.prev[key] = to; }
   function logoImg(h, src) { var i = document.createElement("img"); i.src = src; i.alt = ""; i.height = h; i.addEventListener("error", function () { i.hidden = true; }); return i; }
-  // Which company a model id belongs to. Only DeepSeek has a logo file; other providers get a neutral letter badge.
+  // Which company a model id belongs to. DeepSeek and OpenAI have logo files; other providers get a neutral letter badge.
+  // OpenAI: GPT-5 models use the green logo; GPT-6 (and any other OpenAI model) use the white one.
   function providerOf(id) {
     id = String(id).toLowerCase();
     if (/^deepseek/.test(id)) return { key: "deepseek", name: "DeepSeek", accent: "sky", logo: "assets/deepseek.png" };
-    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: null };
+    if (/^(gpt|chatgpt|o\d|text-|davinci|codex)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
     return { key: "other", name: "Other", accent: "violet", logo: null };
   }
   function logoFor(m, h) {

@@ -251,3 +251,11 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - Push with `--force-with-lease=<branch>:<sha-from-ls-remote>` because the branch is reset after each squash merge. The stop hook may say "unpushed" when the local remote-tracking ref is missing: confirm `git ls-remote` equals `HEAD`, then `git update-ref refs/remotes/origin/<branch> HEAD`. The hook can take over 40 s; give it 110 s.
 - Test with Playwright (in `/opt/node-tools`, Chromium in `/opt/pw-browsers`) against `python3 -m http.server`, stubbing the gateway with `page.route`. Test at 320, 390, 600 and 820 px, look at the screenshots, and say what could not be checked (real-device look, frame rate, Myanmar font: the sandbox has none).
 - **Reply in Burmese, always, including when answering automated task notifications** (a few replies once slipped into Japanese by mistake).
+
+## Update 2026-10-16 (OpenAI logos)
+
+- Owner supplied two OpenAI logo files; they are in `web/assets/` as `openai-white.png` (black mark on white) and `openai-green.png` (white mark on green tile), resized to 160 px.
+- `providerOf()` in `web/app.js`: model ids starting `gpt-5` / `gpt5` get the green logo; every other OpenAI id (GPT-6, o-series, etc.) gets the white one. The mapping is a guess from the owner's words ("6 -> white, 5 -> green"), so ask if it should change.
+- Logos show in the Models boxes, the Chat model menu and the picker. The header "Powered by" badge still hides OpenAI (`POWERED_HIDE`), as the owner asked earlier.
+- Demo mode (`?mock=1`) now lists `gpt-6-luna` and `gpt-5.4-nano` so the logos can be previewed. No OpenAI prices were added; set them in the gateway and `PRICES` once a channel exists (never zero).
+- Checked with Playwright at 390 and 820 px in demo mode: logos load, no console errors. Not checked: real device look, and real OpenAI model ids from the gateway (no channel yet).
