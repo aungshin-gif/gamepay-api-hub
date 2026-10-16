@@ -309,3 +309,30 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 ## Update 2026-10-16 (copy buttons)
 
 - Every chat message (yours and the model's, also after a reload) now has a small copy button in its top-right corner (`addCopy()` in `web/app.js`). It copies only the message text, not the token count or pictures. The Picture pane has a **Copy prompt** button next to "Create picture". Checked in demo mode at 320 and 390 px (clipboard contents verified, no console errors); the real tablet's clipboard behaviour was not checked.
+
+---
+
+## START HERE (written 2026-10-16, end of a very long session; read this before anything else)
+
+**Who and how**: the owner works only from a Xiaomi Pad 7 tablet (no laptop, no Termux), sends screenshots, wants answers in Burmese, one step at a time, and wants honesty about what was not verified. Never ask for keys or passwords in chat; two keys already appeared in screenshots (confirm they are revoked in the gateway). "Pr" = open a PR into `main`; "Pr and merge" = also squash-merge it. The repo is public.
+
+**What exists (all live on `main` once PR #15 is merged)**
+- Dashboard `web/` at https://aungshin-gif.github.io/gamepay-api-hub/ . Tabs: **Start** (landing: code background, DeepSeek/OpenAI boxes with model pop-ups, "Works with" boxes, Telegram support `@angsthtun`), **My key** (Paste / Clear / Check, tokens left), **Chat** (Chat | Picture switch, copy buttons), **Models** (compact cards, last-60 check history kept in the browser), **Guide**.
+- Settings live in `web/config.js` (gateway URL, `PRICES`, `MODEL_INFO`, `START_MODELS`, `SUPPORT_TELEGRAM`). Gateway calls are only in `web/app.js` (`fetchUsage`, `fetchModels`, `testModel`, `streamReal`, `createPicture`). `kindOf()` decides text / image / video models. Demo: `?mock=1`; debug: `?debug=1`.
+- Gateway: new-api on Railway (`https://new-api-production-6f0d.up.railway.app`). DeepSeek priced and working. The owner added an OpenAI channel; their key lists `gpt-4.1-mini`, `gpt-image-1-mini`, `sora-2-pro` (an admin key also showed `gpt-5.3-codex`, `gpt-5.5-pro`, `gpt-5.6-*`, `gpt-6-*`). OpenAI credit of $5 was bought (it only worked without a VPN, with the card region as Myanmar).
+- Tried and dropped: Codespaces + VS Code + Cline (too messy on a tablet). Working: OpenHands Cloud with an LLM profile (Custom Model `openai/<model>`, Base URL `<gateway>/v1`, gateway key).
+
+**Not verified (do not claim they work)**: Picture mode against the real gateway (endpoint answer, `size`, price); the real tablet's look/feel and clipboard prompt; any OpenAI price (not set in the gateway or in `PRICES`); that gateway sign-up is really closed (owner was doing it); a server-side uptime history (the dashboard's history is per browser).
+
+**Open items, most important first**
+1. Confirm the keys that appeared in screenshots are revoked; close gateway sign-up (keep login on); 2FA; DeepSeek balance alert.
+2. Railway trial credit was about $4.75 / 29 days on 2026-10-16: decide the plan before it ends (the whole gateway stops otherwise).
+3. Set OpenAI prices in the gateway first (Models -> model -> Pricing -> Expression, per token, USD per 1M, never zero), then copy the same numbers into `PRICES`. Official OpenAI prices could not be fetched from the sandbox; the owner must supply them. Remove `sora-2-pro`, `gpt-5.5-pro`, `gpt-6-astra` from member keys.
+4. Test Picture mode with the owner's own key and a tiny prompt; check the image price first.
+5. Custom domain `api.gamepayhub.shop` (Railway Custom Domain + a DNS CNAME), then change `GATEWAY_URL` only after it works.
+6. Optional ideas the owner liked: Burmese language toggle, a real server-side uptime history, more "Works with" guides.
+
+**Git and testing gotchas**
+- After every squash-merge the branch has the old commits, so the next PR conflicts. What works without force-push (force-push and `git checkout -B` resets were denied by the permission classifier): `git merge origin/main`, then `git checkout --ours` the conflicted files (the branch already contains everything main has), `git add`, commit, and check that `git diff origin/main HEAD` shows only the new work. Then open the PR and squash-merge with `expectedHeadSha` set to the full 40-character SHA.
+- Test with Playwright from `/opt/node-tools` (Chromium in `/opt/pw-browsers`, launch with `executablePath: '/opt/pw-browsers/chromium'`) against `python3 -m http.server`; stub the gateway with `page.route`; check 320, 390 and 820 px for horizontal overflow and console errors. Do not use `pkill -f <pattern>` in the same shell command line (it matches and kills your own shell). The sandbox cannot reach Railway, the gateway, DeepSeek, OpenAI or most websites.
+- A CSS class called `warn` already exists for notices; do not reuse it for new widgets (the history bars did and overflowed).
