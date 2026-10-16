@@ -13,15 +13,17 @@
 <div class="blob b1" aria-hidden="true"></div><div class="blob b2" aria-hidden="true"></div>
 <div class="app">
   <aside class="side">
-    <div class="brand">
-      <img class="brand-logo" src="assets/logo-192.png" alt="GamePay Hub API logo" width="56" height="56">
-      <div><b>GamePay API Hub</b><span class="muted">API gateway</span></div>
+    <div class="headrow">
+      <div class="brand">
+        <img class="brand-logo" src="assets/logo-192.png" alt="GamePay Hub API logo" width="56" height="56">
+        <div><b>GamePay API Hub</b><span class="muted">API gateway</span></div>
+      </div>
+      <div class="powered" aria-label="Powered by"><span class="plabel">Powered by</span><div class="pchips" id="pchips"></div></div>
     </div>
-    <div class="powered"><img id="dsLogo" src="assets/deepseek.png" alt="DeepSeek logo" height="40"><div><span>Powered by</span><b id="poweredNames">DeepSeek</b></div></div>
     <nav class="nav" id="nav" aria-label="Sections">
-      <button type="button" data-tab="models" class="on"><i data-icon="cube"></i><span>Models</span></button>
+      <button type="button" data-tab="key" class="on"><i data-icon="key"></i><span>My key</span></button>
       <button type="button" data-tab="chat"><i data-icon="chat"></i><span>Chat</span></button>
-      <button type="button" data-tab="key"><i data-icon="key"></i><span>My key</span></button>
+      <button type="button" data-tab="models"><i data-icon="cube"></i><span>Models</span></button>
       <button type="button" data-tab="guide"><i data-icon="book"></i><span>Guide</span></button>
     </nav>
   </aside>
@@ -41,8 +43,8 @@
     <p class="error" id="error" role="alert" hidden></p>
     <pre class="debug" id="debug" hidden></pre>
 
-    <!-- Models: the main page -->
-    <section class="panel on" id="tab-models">
+    <!-- Models -->
+    <section class="panel" id="tab-models">
       <div class="card">
         <div class="top"><h2><span class="livedot" id="liveDot"></span>Live status</h2><span class="chip idle" id="pingChip">not checked</span></div>
         <p class="muted" id="liveInfo">Paste your key above and tap Check to see which models are live.</p>
@@ -81,7 +83,7 @@
     </section>
 
     <!-- My key -->
-    <section class="panel" id="tab-key">
+    <section class="panel on" id="tab-key">
       <div class="card empty" id="emptyState">
         <i data-icon="shield" class="big"></i>
         <h2>Paste your key to begin</h2>

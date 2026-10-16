@@ -139,11 +139,17 @@
   function mstat(m) { return state.ms[m] || (state.ms[m] = { ms: null, testing: false, failed: "", in: 0, out: 0 }); }
   function pchip(m) { var pw = powerOf(mstat(m).ms, "test"), c = el("span", "pchip " + pw[1]); c.appendChild(el("i", "dot")); c.appendChild(document.createTextNode(pw[0])); return c; }
   function modelIds() { return state.models.length ? state.models : (state.data ? state.data.models : []); }
+  // "Powered by": one small badge per company that has a model on this key (DeepSeek by default).
   function updatePowered() {
-    var names = [], hasDs = false;
-    modelIds().forEach(function (m) { var p = providerOf(m); if (names.indexOf(p.name) < 0) names.push(p.name); if (p.key === "deepseek") hasDs = true; });
-    if (!names.length) { names = ["DeepSeek"]; hasDs = true; }
-    $("poweredNames").textContent = names.join(" · "); $("dsLogo").style.display = hasDs ? "" : "none";
+    var list = [], seen = {};
+    modelIds().forEach(function (m) { var p = providerOf(m); if (!seen[p.key]) { seen[p.key] = 1; list.push(p); } });
+    if (!list.length) list = [providerOf("deepseek")];
+    var box = $("pchips"); box.textContent = "";
+    list.forEach(function (p) {
+      var c = el("span", "pbadge"), lg = el("span", "plg");
+      lg.appendChild(p.logo ? logoImg(22, p.logo) : el("span", "glyph", p.name.charAt(0)));
+      c.appendChild(lg); c.appendChild(el("b", "", p.name)); box.appendChild(c);
+    });
   }
   function fail(msg) { var e = $("error"); e.textContent = msg; e.hidden = false; }
   function two(n) { return (n < 10 ? "0" : "") + n; }
@@ -169,7 +175,7 @@
       var mid = el("div", "mmid"); mid.appendChild(el("div", "mname", m)); mid.appendChild(el("div", "mtag", info.tag || (providerOf(m).name + (p ? "" : " · price not set")))); d.appendChild(mid);
       var io = el("div", "io");
       [["Input", p ? "$" + p.input : "--", st.in], ["Output", p ? "$" + p.output : "--", st.out]].forEach(function (r) {
-        var b = el("div"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1] + " /1M")); b.appendChild(el("span", "ios", fmt(r[2]) + " tokens")); io.appendChild(b);
+        var b = el("div"); b.setAttribute("data-l", r[0]); b.setAttribute("data-s", r[0] === "Input" ? "In" : "Out"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1] + " /1M")); b.appendChild(el("span", "ios", fmt(r[2]) + " tokens")); io.appendChild(b);
       }); d.appendChild(io);
       var foot = el("div", "mfoot"), btn = el("button", "small"), res = el("span", "ms");
       btn.type = "button"; btn.disabled = st.testing; btn.innerHTML = svg("play") + "<span>Test</span>";
@@ -449,7 +455,5 @@
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + b.getAttribute("data-tab")); });
     window.scrollTo(0, 0);
   });
-  var dl = $("dsLogo"); dl.addEventListener("error", function () { dl.hidden = true; });
-  if (dl.complete && dl.naturalWidth === 0) dl.hidden = true; // the error may have fired before this script ran
-  loadChat(); fillChatModels(); paintIcons();
+  loadChat(); fillChatModels(); updatePowered(); paintIcons();
 })();
