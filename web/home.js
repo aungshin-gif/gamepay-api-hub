@@ -184,7 +184,10 @@
     var tools = grp("ftools", "Your tools"), tg = el("div", "ftiles");
     plats.forEach(function (b, i) {
       var t = el("button", "ft t" + (i % 6)), ic = el("span", "fti"), sv = b.querySelector(".pli svg"), nm = b.querySelector(".plt b");
-      t.type = "button"; if (sv) ic.innerHTML = sv.outerHTML; t.appendChild(ic); t.appendChild(el("b", "", nm ? nm.textContent.replace("Your own app", "Your app") : "")); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
+      var LG = { "VS Code": "assets/tool-vscode.svg", "Terminal": "assets/tool-terminal.svg", "Python": "assets/tool-python.svg", "OpenHands": "assets/tool-openhands.svg" }, nmt = nm ? nm.textContent : "";
+      t.type = "button";
+      if (LG[nmt]) { var li = document.createElement("img"); li.src = LG[nmt]; li.alt = ""; ic.classList.add("logo"); ic.appendChild(li); } else if (sv) ic.innerHTML = sv.outerHTML; // real logo where we have one, plain glyph otherwise
+      t.appendChild(ic); t.appendChild(el("b", "", nmt.replace("Your own app", "Your app"))); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
     });
     tools.appendChild(tg);
     // middle: the gateway

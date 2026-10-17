@@ -591,3 +591,11 @@ button.fm:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(77, 
   .fgw { padding: 14px 10px 10px; gap: 8px; } .fglogo { width: 36px; height: 36px; border-radius: 11px; } .fgttl b { font-size: 15px; } .fgttl span { font-size: 10.5px; }
   .fglive { font-size: 0; gap: 0; padding: 6px; } .fgr { padding: 6px 8px; font-size: 12.5px; gap: 8px; } .fgi { width: 26px; height: 26px; border-radius: 9px; } .fgi svg { width: 14px; height: 14px; }
 }
+
+/* the big glass panel is gone: the neuron sits straight on the hero (owner did not like the framed screen) */
+.net { border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; }
+.netglass { display: none; }
+
+/* tool tiles that show a real logo: white tile, logo inside */
+.fti.logo { background: #fff !important; border: 1px solid #e3e9fb; box-shadow: 0 6px 14px rgba(77, 107, 254, .14); }
+.fti.logo img { width: 66%; height: 66%; object-fit: contain; display: block; }
