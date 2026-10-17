@@ -1,7 +1,7 @@
 // Public settings only. NEVER put keys or admin tokens in this file (the repo is public).
 window.GPH_CONFIG = {
   // Gateway base URL (no trailing slash). Replace with the custom domain once it exists.
-  GATEWAY_URL: "https://new-api-production-6f0d.up.railway.app",
+  GATEWAY_URL: "https://api.gamepayhub.shop",
   // new-api: $1 = 500,000 quota units (notes/HANDOFF.md section 4).
   QUOTA_PER_USD: 500000,
   // Prices we charge, USD per 1M tokens (notes/HANDOFF.md section 4). flash is uniform on purpose,

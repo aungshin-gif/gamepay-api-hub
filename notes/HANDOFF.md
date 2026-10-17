@@ -336,3 +336,10 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - After every squash-merge the branch has the old commits, so the next PR conflicts. What works without force-push (force-push and `git checkout -B` resets were denied by the permission classifier): `git merge origin/main`, then `git checkout --ours` the conflicted files (the branch already contains everything main has), `git add`, commit, and check that `git diff origin/main HEAD` shows only the new work. Then open the PR and squash-merge with `expectedHeadSha` set to the full 40-character SHA.
 - Test with Playwright from `/opt/node-tools` (Chromium in `/opt/pw-browsers`, launch with `executablePath: '/opt/pw-browsers/chromium'`) against `python3 -m http.server`; stub the gateway with `page.route`; check 320, 390 and 820 px for horizontal overflow and console errors. Do not use `pkill -f <pattern>` in the same shell command line (it matches and kills your own shell). The sandbox cannot reach Railway, the gateway, DeepSeek, OpenAI or most websites.
 - A CSS class called `warn` already exists for notices; do not reuse it for new widgets (the history bars did and overflowed).
+
+## Update 2026-10-17 (custom domain)
+
+- Custom domain **`api.gamepayhub.shop`** is set up: Railway `new-api` service (port 8080) with a CNAME `api` and a TXT `_railway-verify.api` record added at Hostinger DNS. The owner reported Railway shows it as ready.
+- `GATEWAY_URL` in `web/config.js` was switched to `https://api.gamepayhub.shop` after the owner opened `https://api.gamepayhub.shop/v1/models` in a browser and saw a JSON answer. The old Railway address (`...up.railway.app`) still works; do not delete it.
+- Railway's trial only allows one custom domain, so the "custom domain limit" banner is expected. No upgrade was needed.
+- Not verified from the sandbox (it cannot reach the gateway): CORS and chat streaming through the new domain from the dashboard. Check with a real key after the switch.
