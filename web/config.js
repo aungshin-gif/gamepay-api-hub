@@ -1,7 +1,7 @@
 // Public settings only. NEVER put keys or admin tokens in this file (the repo is public).
 window.GPH_CONFIG = {
   // Gateway base URL (no trailing slash). Replace with the custom domain once it exists.
-  GATEWAY_URL: "https://new-api-production-6f0d.up.railway.app",
+  GATEWAY_URL: "https://api.gamepayhub.shop",
   // new-api: $1 = 500,000 quota units (notes/HANDOFF.md section 4).
   QUOTA_PER_USD: 500000,
   // Prices we charge, USD per 1M tokens (notes/HANDOFF.md section 4). flash is uniform on purpose,
@@ -42,5 +42,13 @@ window.GPH_CONFIG = {
     ]
   },
   // How often the Models tab re-checks the gateway while the page is open and visible.
+  // Start page: models shown as cards under "Featured models" (ids must exist in PRICES / START_MODELS for tags and prices).
+  FEATURED_MODELS: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna"],
+  // Start page network picture: logos around the GamePay core. Add more files here when you have them (path under web/assets).
+  NET_NODES: [
+    { logo: "assets/net-deepseek.png", name: "DeepSeek" }, { logo: "assets/net-openai.png", name: "OpenAI" },
+    { logo: "assets/net-anthropic.png", name: "Anthropic" }, { logo: "assets/net-blue.png" },
+    { logo: "assets/net-xai.png", name: "xAI" }, { logo: "assets/net-qwen.png", name: "Qwen" }
+  ],
   LIVE_EVERY_MS: 60000
 };

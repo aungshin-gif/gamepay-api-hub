@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f6f8fc">
 <title>GamePay API Hub</title>
 <link rel="icon" href="assets/favicon.png" type="image/png">
-<link rel="stylesheet" href="styles.css?v=20261017c">
+<link rel="stylesheet" href="styles.css?v=20261018c">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d6bfe"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
@@ -19,6 +19,7 @@
         <div><b>GamePay API Hub</b><span class="muted">API gateway</span></div>
       </div>
       <div class="powered" id="powered" aria-label="Powered by" hidden><span class="plabel">Powered by</span><div class="pchips" id="pchips"></div></div>
+      <a class="ctabtn" id="navCta" href="#" target="_blank" rel="noopener" hidden>Get a key</a>
     </div>
     <nav class="nav" id="nav" aria-label="Sections">
       <button type="button" data-tab="start" class="on"><i data-icon="home"></i><span>Start</span></button>
@@ -120,19 +121,37 @@
     <!-- My key -->
     <!-- Start -->
     <section class="panel on" id="tab-start">
-      <div class="card landing">
-        <div class="codebg" aria-hidden="true"><div class="codeslide" id="codeSlide"></div></div>
-        <div class="ltx">
-          <span class="eyebrow">API gateway</span>
-          <h1>One key.<br><span class="grad">DeepSeek &amp; OpenAI</span> models.</h1>
-          <p>Use the same key in chat, VS Code, the terminal and your own apps.</p>
+      <div class="hero2">
+        <div class="h2tx">
+          <span class="eyebrow2">GamePay API Hub</span>
+          <h1>One key.<br><span class="grad2">Every model</span> you use.</h1>
+          <p>Chat, make pictures and connect your tools with a single key. See what is live and what is left.</p>
           <div class="lbtns">
             <button type="button" class="primary" id="startBtn"><span>Get started</span><i data-icon="arrow"></i></button>
             <a class="ghostbtn" id="tgBtn" href="#" target="_blank" rel="noopener" hidden><i data-icon="send"></i><span>Telegram support</span></a>
           </div>
+          <div class="h2chips"><span>OpenAI-compatible</span><span>Live status</span><span>Token balance</span></div>
+        </div>
+        <div class="net" id="net" aria-hidden="true">
+          <canvas id="netCv"></canvas>
+          <div class="netnodes" id="netNodes"></div>
         </div>
       </div>
-      <div class="sechead"><h2>Models</h2><span class="muted">Tap a box to see the models</span></div>
+      <div class="stats2" id="stats2">
+        <div><b data-stat="models">--</b><span>Models listed</span></div>
+        <div><b data-stat="providers">--</b><span>Providers</span></div>
+        <div><b data-stat="live">--</b><span>Live check every</span></div>
+        <div><b data-stat="key">1</b><span>Key for everything</span></div>
+      </div>
+      <div class="feat2">
+        <div class="fcard"><span class="fi"><i data-icon="image"></i></span><b>Chat and pictures</b><p>Talk to models and make pictures from this page.</p></div>
+        <div class="fcard"><span class="fi"><i data-icon="activity"></i></span><b>Live status</b><p>See which models answer right now, checked every minute.</p></div>
+        <div class="fcard"><span class="fi"><i data-icon="key"></i></span><b>Know what is left</b><p>Paste your key to see how many tokens you have left.</p></div>
+        <div class="fcard"><span class="fi"><i data-icon="code"></i></span><b>Works with your tools</b><p>VS Code, the terminal, Python and more. Same Base URL, same key.</p></div>
+      </div>
+      <div class="sechead"><h2>Featured models</h2><button type="button" class="linkmore" id="featAll">View all <span aria-hidden="true">&rarr;</span></button></div>
+      <div class="featrow" id="featRow"></div>
+      <div class="sechead"><h2>Providers</h2><span class="muted">Tap a box to see the models</span></div>
       <div class="pgrid" id="provBoxes"></div>
       <div class="sechead"><h2>Works with</h2><span class="muted">Tap for the settings</span></div>
       <div class="plgrid" id="platBoxes"></div>
@@ -201,7 +220,8 @@
     <div class="sheet-body" id="sheetBody"></div>
   </div>
 </div>
-<script src="config.js?v=20261017c"></script>
-<script src="app.js?v=20261017c"></script>
+<script src="config.js?v=20261018c"></script>
+<script src="app.js?v=20261018c"></script>
+<script src="home.js?v=20261018c"></script>
 </body>
 </html>
