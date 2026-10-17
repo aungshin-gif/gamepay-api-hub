@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f6f8fc">
 <title>GamePay API Hub</title>
 <link rel="icon" href="assets/favicon.png" type="image/png">
-<link rel="stylesheet" href="styles.css?v=20261018c">
+<link rel="stylesheet" href="styles.css?v=20261018d">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d6bfe"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
@@ -143,6 +143,8 @@
         <div><b data-stat="live">--</b><span>Live check every</span></div>
         <div><b data-stat="key">1</b><span>Key for everything</span></div>
       </div>
+      <div class="sechead"><h2>How it works</h2><span class="muted">Tap a tool or a provider for the settings</span></div>
+      <div class="flow" id="flow"></div>
       <div class="feat2">
         <div class="fcard"><span class="fi"><i data-icon="image"></i></span><b>Chat and pictures</b><p>Talk to models and make pictures from this page.</p></div>
         <div class="fcard"><span class="fi"><i data-icon="activity"></i></span><b>Live status</b><p>See which models answer right now, checked every minute.</p></div>
@@ -151,10 +153,10 @@
       </div>
       <div class="sechead"><h2>Featured models</h2><button type="button" class="linkmore" id="featAll">View all <span aria-hidden="true">&rarr;</span></button></div>
       <div class="featrow" id="featRow"></div>
-      <div class="sechead"><h2>Providers</h2><span class="muted">Tap a box to see the models</span></div>
-      <div class="pgrid" id="provBoxes"></div>
-      <div class="sechead"><h2>Works with</h2><span class="muted">Tap for the settings</span></div>
-      <div class="plgrid" id="platBoxes"></div>
+      <div class="sechead" hidden><h2>Providers</h2><span class="muted">Tap a box to see the models</span></div>
+      <div class="pgrid" id="provBoxes" hidden></div>
+      <div class="sechead" hidden><h2>Works with</h2><span class="muted">Tap for the settings</span></div>
+      <div class="plgrid" id="platBoxes" hidden></div>
       <div class="card stepsc">
         <h2>3 steps</h2>
         <ol class="steps3" id="steps3">
@@ -220,8 +222,8 @@
     <div class="sheet-body" id="sheetBody"></div>
   </div>
 </div>
-<script src="config.js?v=20261018c"></script>
-<script src="app.js?v=20261018c"></script>
-<script src="home.js?v=20261018c"></script>
+<script src="config.js?v=20261018d"></script>
+<script src="app.js?v=20261018d"></script>
+<script src="home.js?v=20261018d"></script>
 </body>
 </html>
