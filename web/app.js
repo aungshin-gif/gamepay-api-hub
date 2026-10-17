@@ -425,11 +425,21 @@
   // The key box lives on the My key tab; Chat shows a short reminder (with a shortcut) until a key has been entered.
   function hasKey() { return !!(state.key || $("keyInput").value.trim()); }
   function syncChatKeyNote() { $("chatNeedKey").hidden = MOCK || hasKey(); }
+  // 3 steps on Start: play the animation when the box scrolls into view (and again each time Start is opened).
+  var stepsIO = null;
+  function watchSteps() {
+    var ol = $("steps3"); if (!ol) return; ol.classList.remove("in");
+    if (!("IntersectionObserver" in window)) { ol.classList.add("in"); return; }
+    if (stepsIO) stepsIO.disconnect();
+    stepsIO = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { void ol.offsetWidth; ol.classList.add("in"); stepsIO.disconnect(); } }, { threshold: 0.35 });
+    stepsIO.observe(ol);
+  }
   function showTab(name) {
     document.body.setAttribute("data-tab", name);
     document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-tab") === name); });
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + name); });
     if (name === "chat") syncChatKeyNote();
+    if (name === "start") watchSteps();
     window.scrollTo(0, 0);
   }
   function sendChat() {
@@ -705,5 +715,5 @@
   if (cfg.SUPPORT_TELEGRAM) { var tgb = $("tgBtn"); tgb.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; tgb.hidden = false; }
 
   loadHist(); renderStrip();
-  document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons();
+  document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons(); watchSteps();
 })();

@@ -347,3 +347,20 @@ body.noscroll { overflow: hidden; }
 /* Start page: Telegram button is a soft filled button, no outline */
 .ghostbtn { border: 0; background: rgba(255, 255, 255, .16); box-shadow: none; }
 .ghostbtn:hover { background: rgba(255, 255, 255, .26); }
+
+/* 3 steps: bordered boxes joined by a line, shown one by one, then lit in turn */
+.steps3 { gap: 18px; counter-reset: none; }
+.steps3 li { counter-increment: none; position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: center; padding: 12px 14px; border: 1.5px solid #d9ccf3; border-radius: 18px; background: linear-gradient(180deg, #fff, #faf7ff); opacity: 0; transform: translateY(16px); }
+.steps3 li::before { content: none; }
+.steps3 .st { display: grid; gap: 2px; min-width: 0; } .steps3 .st b { font-size: 15.5px; color: #2a1a55; } .steps3 .st span { font-size: 13.5px; }
+.steps3 .sn { position: relative; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #4d6bfe, #a78bfa); box-shadow: 0 8px 18px rgba(98, 49, 200, .28); }
+.steps3 .sn svg.ic { width: 22px; height: 22px; stroke-width: 2; }
+.steps3 .sn em { position: absolute; right: -5px; top: -5px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 800 11px/1 inherit; font-style: normal; color: #6231c8; background: #fff; border: 1.5px solid #d9ccf3; }
+.steps3 li:not(:last-child)::after { content: ""; position: absolute; left: 37px; top: 100%; width: 3px; height: 18px; margin-left: -1px; border-radius: 3px; transform-origin: top; transform: scaleY(0); background: linear-gradient(180deg, #4d6bfe, #a78bfa, #4d6bfe); background-size: 100% 300%; }
+.steps3.in li { animation: stepIn .7s cubic-bezier(.22, .7, .2, 1) both, stepLit 7.2s ease-in-out infinite; animation-delay: calc(var(--i) * .55s), calc(var(--i) * 2.4s + 2s); }
+.steps3.in li:not(:last-child)::after { animation: lineDraw .5s ease both, lineFlow 2.6s linear infinite; animation-delay: calc(var(--i) * .55s + .45s), calc(var(--i) * .55s + .95s); }
+@keyframes stepIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes lineDraw { to { transform: scaleY(1); } }
+@keyframes lineFlow { to { background-position: 0 -300%; } }
+@keyframes stepLit { 0%, 30%, 100% { border-color: #d9ccf3; box-shadow: none; } 8%, 20% { border-color: #8b6cf0; box-shadow: 0 0 0 4px rgba(139, 108, 240, .16), 0 10px 22px rgba(98, 49, 200, .14); } }
+@media (prefers-reduced-motion: reduce) { .steps3 li { opacity: 1; transform: none; animation: none !important; } .steps3 li:not(:last-child)::after { transform: none; animation: none !important; } }
