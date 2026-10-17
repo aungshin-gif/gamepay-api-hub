@@ -588,9 +588,15 @@
         var d = j && j.data && j.data[0]; if (!d) throw new Error("The gateway sent no picture.");
         return d.b64_json ? "data:image/png;base64," + d.b64_json : d.url; }); });
   }
-  $("imgCopy").addEventListener("click", function () {
-    var t = $("imgPrompt").value.trim(), b = this, lab = b.querySelector("span"); if (!t) return;
-    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { lab.textContent = "Copied"; setTimeout(function () { lab.textContent = "Copy prompt"; }, 1400); }).catch(function () { lab.textContent = "Press and hold the box to copy"; });
+  // Paste prompt: puts the clipboard text into the picture box (the browser may ask for permission the first time).
+  $("imgPaste").addEventListener("click", function () {
+    var b = this, lab = b.querySelector("span"), box = $("imgPrompt");
+    function say(t) { lab.textContent = t; setTimeout(function () { lab.textContent = "Paste prompt"; }, 1800); }
+    if (!navigator.clipboard || !navigator.clipboard.readText) { say("Press and hold the box to paste"); return; }
+    navigator.clipboard.readText().then(function (t) {
+      t = (t || "").trim(); if (!t) { say("Clipboard is empty"); return; }
+      box.value = t; box.focus(); say("Pasted");
+    }).catch(function () { say("Allow paste, or hold the box"); });
   });
   $("imgGo").addEventListener("click", function () {
     if (imgBusy) return;

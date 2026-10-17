@@ -343,3 +343,7 @@ body.noscroll { overflow: hidden; }
 .szi { display: grid; place-items: center; width: 100%; height: 100%; color: var(--blue-deep); } .szi svg.ic { width: 18px; height: 18px; }
 .opt .olg { width: 38px; height: 38px; } .opt .olg .szi svg.ic { width: 20px; height: 20px; }
 .imgpane .imgrow:first-child .sel:first-child { flex: 2 1 190px; } .imgpane .imgrow:first-child .sel:nth-child(2) { flex: 1 1 150px; }
+
+/* Start page: Telegram button is a soft filled button, no outline */
+.ghostbtn { border: 0; background: rgba(255, 255, 255, .16); box-shadow: none; }
+.ghostbtn:hover { background: rgba(255, 255, 255, .26); }

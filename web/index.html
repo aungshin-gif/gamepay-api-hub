@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#f6f8fc">
 <title>GamePay API Hub</title>
 <link rel="icon" href="assets/favicon.png" type="image/png">
-<link rel="stylesheet" href="styles.css?v=20261016b">
+<link rel="stylesheet" href="styles.css?v=20261017a">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4d6bfe"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
@@ -98,7 +98,7 @@
             <label class="sel"><span class="muted">Size</span><select id="imgSize" aria-label="Picture size"><option value="">Default</option><option value="1024x1024">Square 1024</option></select></label>
           </div>
           <textarea id="imgPrompt" rows="3" placeholder="Describe the picture..." aria-label="Picture description"></textarea>
-          <div class="imgrow"><button type="button" class="primary" id="imgGo"><i data-icon="image"></i><span>Create picture</span></button><button type="button" class="soft" id="imgCopy"><i data-icon="copy"></i><span>Copy prompt</span></button><a class="soft linkbtn" id="imgSave" download="picture.png" hidden><i data-icon="download"></i><span>Save</span></a></div>
+          <div class="imgrow"><button type="button" class="primary" id="imgGo"><i data-icon="image"></i><span>Create picture</span></button><button type="button" class="soft" id="imgPaste"><i data-icon="paste"></i><span>Paste prompt</span></button><a class="soft linkbtn" id="imgSave" download="picture.png" hidden><i data-icon="download"></i><span>Save</span></a></div>
           <p class="hint">One picture costs more than a chat message. It can take up to a minute.</p>
           <div class="imgout" id="imgOut" aria-live="polite"><p class="muted">Your picture will appear here.</p></div>
         </div>
@@ -201,7 +201,7 @@
     <div class="sheet-body" id="sheetBody"></div>
   </div>
 </div>
-<script src="config.js?v=20261016b"></script>
-<script src="app.js?v=20261016b"></script>
+<script src="config.js?v=20261017a"></script>
+<script src="app.js?v=20261017a"></script>
 </body>
 </html>
