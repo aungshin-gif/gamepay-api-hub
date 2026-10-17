@@ -12,7 +12,7 @@
   // Everything is real 3D (rotate, tilt, perspective) drawn on one canvas; the logos are DOM nodes placed at the branch tips.
   function initNet() {
     var box = $("net"), cv = $("netCv"), holder = $("netNodes"); if (!box || !cv || !holder) return;
-    var ctx = cv.getContext("2d"), logos = cfg.NET_NODES || [], total = Math.max(14, logos.length + 8), w = 0, h = 0, dpr = 1, raf = 0, running = false, visible = true;
+    var ctx = cv.getContext("2d"), logos = cfg.NET_NODES || [], DECOR = 12, total = logos.length + DECOR, w = 0, h = 0, dpr = 1, raf = 0, running = false, visible = true;
     function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
     function nrm(v) { var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
     function crs(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
@@ -22,14 +22,14 @@
     var BLUE = [77, 107, 254], VIOLET = [139, 108, 240], TEAL = [45, 212, 191];
     function ramp(u) { return u < 0.55 ? mix(BLUE, VIOLET, u / 0.55) : mix(VIOLET, TEAL, (u - 0.55) / 0.45); }
     var R = rng(11), SR = 0.27, N = 18, gold = Math.PI * (3 - Math.sqrt(5)), logoAt = {}, nodes = [], dust = [], organelles = [], bumps = [], rings = [];
-    logos.forEach(function (l, k) { logoAt[Math.floor((k + 0.5) * total / logos.length)] = l; });
     for (var i = 0; i < total; i++) {
-      var y = 1 - (i + 0.5) * 2 / total, rr = Math.sqrt(1 - y * y), th = i * gold, d = [Math.cos(th) * rr, y, Math.sin(th) * rr], l = logoAt[i], de;
-      if (l) { de = el("span", "nn" + (l.tile ? " sq" : "")); var im = document.createElement("img"); im.src = l.logo; im.alt = ""; im.height = 24; im.addEventListener("error", function () { this.hidden = true; }); de.appendChild(im); if (l.name) de.title = l.name; }
+      var fixed = i < logos.length, j = i - logos.length, y = 1 - (j + 0.5) * 2 / DECOR, rr = Math.sqrt(1 - y * y), th = j * gold, l = fixed ? logos[i] : null, phi = -Math.PI / 2 + i * 6.2832 / Math.max(1, logos.length);
+      var d = fixed ? [Math.cos(phi), Math.sin(phi), 0] : [Math.cos(th) * rr, y, Math.sin(th) * rr], de;
+      if (l) { de = el("span", "nn"); var im = document.createElement("img"); im.src = l.logo; im.alt = ""; im.height = 24; im.addEventListener("error", function () { this.hidden = true; }); de.appendChild(im); if (l.name) de.title = l.name; }
       else de = el("span", "nd");
       holder.appendChild(de);
       // one branch: a cubic curve from the soma surface to the node, bent a little so it looks grown, not drawn
-      var up = Math.abs(d[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0], u1 = nrm(crs(d, up)), u2 = crs(d, u1), k1 = R() - 0.5, k2 = R() - 0.5;
+      var up = Math.abs(d[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0], u1 = nrm(crs(d, up)), u2 = crs(d, u1), k1 = fixed ? (i % 2 ? 0.2 : -0.2) : R() - 0.5, k2 = fixed ? 0.1 : R() - 0.5;
       var p0 = [d[0] * SR, d[1] * SR, d[2] * SR], p3 = [d[0] * 0.97, d[1] * 0.97, d[2] * 0.97];
       var p1 = add(add([d[0] * 0.47, d[1] * 0.47, d[2] * 0.47], u1, k1 * 0.55), u2, k2 * 0.35), p2 = add(add([d[0] * 0.74, d[1] * 0.74, d[2] * 0.74], u1, -k1 * 0.4), u2, k2 * 0.5), pts = [];
       for (var s = 0; s <= N; s++) { var u = s / N, v = 1 - u; pts.push([v * v * v * p0[0] + 3 * v * v * u * p1[0] + 3 * v * u * u * p2[0] + u * u * u * p3[0], v * v * v * p0[1] + 3 * v * v * u * p1[1] + 3 * v * u * u * p2[1] + u * u * u * p3[1], v * v * v * p0[2] + 3 * v * v * u * p1[2] + 3 * v * u * u * p2[2] + u * u * u * p3[2]]); }
@@ -39,7 +39,7 @@
         for (var s2 = 0; s2 <= 6; s2++) { var uu = s2 / 6, vv = 1 - uu; tp.push([vv * vv * a0[0] + 2 * vv * uu * m[0] + uu * uu * e[0], vv * vv * a0[1] + 2 * vv * uu * m[1] + uu * uu * e[1], vv * vv * a0[2] + 2 * vv * uu * m[2] + uu * uu * e[2]]); }
         twigs.push(tp);
       });
-      nodes.push({ pts: pts, twigs: twigs, el: de, big: !!l, ph: i * 0.137 + R() * 0.2, flash: 0, sx: 0, sy: 0, dz: 0, bz: 0 });
+      nodes.push({ pts: pts, twigs: twigs, el: de, big: !!l, fixed: fixed, g: null, ph: i * 0.137 + R() * 0.2, flash: 0, sx: 0, sy: 0, dz: 0, bz: 0 });
     }
     for (var q = 0; q < 42; q++) { var dd = nrm([R() - 0.5, R() - 0.5, R() - 0.5]), rd = 0.35 + R() * 0.85; dust.push({ p: [dd[0] * rd, dd[1] * rd, dd[2] * rd], s: 0.8 + R() * 1.4, ph: R() * 6.28 }); }
     for (var q2 = 0; q2 < 14; q2++) { var d2 = nrm([R() - 0.5, R() - 0.5, R() - 0.5]), r2 = SR * (0.2 + R() * 0.62); organelles.push({ p: [d2[0] * r2, d2[1] * r2, d2[2] * r2], s: 0.8 + R() * 1.6 }); }
@@ -50,9 +50,9 @@
       rings.push({ pts: pr, bead: R() * 6.28 });
     });
 
-    function size() { w = box.clientWidth; h = box.clientHeight; dpr = Math.min(window.devicePixelRatio || 1, 1.5); cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px"; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-    var cx, cy, rx, ry, ca, sa, ct, st, r0;
-    function P(p) { var x1 = p[0] * ca + p[2] * sa, z1 = -p[0] * sa + p[2] * ca, y2 = p[1] * ct - z1 * st, z2 = p[1] * st + z1 * ct, s = 1 / (1 - z2 * 0.28); return [cx + x1 * rx * s, cy + y2 * ry * s, z2, s]; }
+    function size() { w = box.clientWidth; h = box.clientHeight; dpr = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px"; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    var cx, cy, rx, ry, r0, G0 = { ca: 1, sa: 0, ct: 1, st: 0 }, G1 = { ca: 1, sa: 0, ct: 1, st: 0 };
+    function P(p, g) { g = g || G0; var x1 = p[0] * g.ca + p[2] * g.sa, z1 = -p[0] * g.sa + p[2] * g.ca, y2 = p[1] * g.ct - z1 * g.st, z2 = p[1] * g.st + z1 * g.ct, s = 1 / (1 - z2 * 0.28); return [cx + x1 * rx * s, cy + y2 * ry * s, z2, s]; }
     function rgba(c, a) { return "rgba(" + (c[0] | 0) + "," + (c[1] | 0) + "," + (c[2] | 0) + "," + a.toFixed(3) + ")"; }
     var sprites = {};
     function sprite(c) { var k = (Math.round(c[0] / 16) * 16) + "," + (Math.round(c[1] / 16) * 16) + "," + (Math.round(c[2] / 16) * 16); if (sprites[k]) return sprites[k]; var s = document.createElement("canvas"); s.width = s.height = 64; var g = s.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(" + k + ",1)"); gr.addColorStop(1, "rgba(" + k + ",0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); sprites[k] = s; return s; }
@@ -72,13 +72,13 @@
         strokeSeg(a, b, u, wd, 0.2 + 0.72 * dz, front);
       }
       n.twigs.forEach(function (tp) {
-        var tpr = tp.map(P);
+        var tpr = tp.map(function (p) { return P(p, n.g); });
         for (var s2 = 0; s2 < tpr.length - 1; s2++) { var a2 = tpr[s2], b2 = tpr[s2 + 1], z2 = (a2[2] + b2[2]) / 2; if ((z2 >= 0) !== front) continue; strokeSeg(a2, b2, 0.4 + s2 / 14, lerp(1.5, 0.6, s2 / 6) * a2[3], 0.14 + 0.5 * (z2 + 1) / 2, front); }
         var e = tpr[tpr.length - 1]; if ((e[2] >= 0) === front) glowDot(e[0], e[1], 3.2 * e[3], TEAL, 0.25 + 0.5 * (e[2] + 1) / 2);
       });
     }
     function ringPass(rg, front, t) {
-      var pr = rg.pts.map(P);
+      var pr = rg.pts.map(function (p) { return P(p); });
       for (var s = 0; s < pr.length - 1; s++) { var a = pr[s], b = pr[s + 1], zm = (a[2] + b[2]) / 2; if ((zm >= 0) !== front) continue; strokeSeg(a, b, s / 72, 1.1 * a[3], 0.16 + 0.55 * (zm + 1) / 2, front); }
       var bi = ((t * 0.0006 + rg.bead) % 6.2832) / 6.2832 * 72, i0 = Math.floor(bi) % 72, bp = pr[i0]; if ((bp[2] >= 0) === front) glowDot(bp[0], bp[1], 6 * bp[3], VIOLET, 0.45 + 0.4 * (bp[2] + 1) / 2);
     }
@@ -102,10 +102,10 @@
     function draw(t) {
       if (!w || !h) return;
       var a = reduce ? 0.7 : t * 0.00022, tilt = 0.34 + (reduce ? 0 : 0.07 * Math.sin(t * 0.0004));
-      ca = Math.cos(a); sa = Math.sin(a); ct = Math.cos(tilt); st = Math.sin(tilt); cx = w / 2; cy = h / 2; rx = w * 0.40; ry = h * 0.41; r0 = Math.min(rx, ry) * SR;
+      var aF = reduce ? 0 : 0.13 * Math.sin(t * 0.00035); G0.ca = Math.cos(a); G0.sa = Math.sin(a); G0.ct = Math.cos(tilt); G0.st = Math.sin(tilt); G1.ca = Math.cos(aF); G1.sa = Math.sin(aF); G1.ct = 1; G1.st = 0; cx = w / 2; cy = h / 2; rx = ry = Math.min(w, h) * 0.405; r0 = rx * SR;
       ctx.clearRect(0, 0, w, h);
       dust.forEach(function (d) { var q = P(d.p), tw = reduce ? 1 : 0.6 + 0.4 * Math.sin(t * 0.002 + d.ph); ctx.fillStyle = rgba(q[2] > 0 ? BLUE : TEAL, (0.12 + 0.3 * (q[2] + 1) / 2) * tw); ctx.beginPath(); ctx.arc(q[0], q[1], d.s * q[3], 0, 6.2832); ctx.fill(); });
-      var order = nodes.map(function (n) { n.pr = n.pts.map(P); var e = n.pr[N]; n.sx = e[0]; n.sy = e[1]; n.dz = (e[2] + 1) / 2; n.bz = e[2]; n.sc = e[3]; return n; }).sort(function (p, q) { return p.dz - q.dz; });
+      var order = nodes.map(function (n) { n.g = n.fixed ? G1 : G0; n.pr = n.pts.map(function (p) { return P(p, n.g); }); var e = n.pr[N]; n.sx = e[0]; n.sy = e[1]; n.dz = (e[2] + 1) / 2; n.bz = e[2]; n.sc = e[3]; return n; }).sort(function (p, q) { return p.dz - q.dz; });
       rings.forEach(function (rg) { ringPass(rg, false, t); });
       order.forEach(function (n) { branchPass(n, n.pr, false); });
       soma(t, false);
@@ -118,8 +118,8 @@
           for (var k = 0; k < 4; k++) { var pk = p - k * 0.025; if (pk < 0) break; var fk = pk * N, ik = Math.min(N - 1, Math.floor(fk)), qa = n.pr[ik], qb = n.pr[ik + 1], fk2 = fk - ik; glowDot(lerp(qa[0], qb[0], fk2), lerp(qa[1], qb[1], fk2), (7 - k * 1.3) * n.sc, ramp(pk), (0.85 - k * 0.2) * (0.35 + 0.65 * n.dz)); }
           if (p > 0.95) n.flash = 1; else n.flash = Math.max(0, n.flash - 0.025);
         }
-        var behind = n.bz < 0 && Math.sqrt((n.sx - cx) * (n.sx - cx) + (n.sy - cy) * (n.sy - cy)) < r0 * 1.15, op = behind ? 0 : 0.6 + 0.4 * n.dz;
-        n.el.style.transform = "translate3d(" + (n.sx - cx).toFixed(1) + "px," + (n.sy - cy).toFixed(1) + "px,0) scale(" + (0.8 + 0.4 * n.dz + 0.1 * n.flash).toFixed(3) + ")"; n.el.style.opacity = op.toFixed(2); n.el.style.zIndex = String(Math.round(n.dz * 100));
+        var behind = !n.fixed && n.bz < 0 && Math.sqrt((n.sx - cx) * (n.sx - cx) + (n.sy - cy) * (n.sy - cy)) < r0 * 1.15, op = n.fixed ? 1 : (behind ? 0 : 0.6 + 0.4 * n.dz);
+        n.el.style.transform = "translate3d(" + (n.sx - cx).toFixed(1) + "px," + (n.sy - cy).toFixed(1) + "px,0) scale(" + (n.fixed ? 1 : 0.8 + 0.4 * n.dz).toFixed(3) + ")"; n.el.style.opacity = op.toFixed(2); n.el.style.zIndex = String(n.fixed ? 300 : Math.round(n.dz * 100));
       });
     }
     function loop(t) { if (!running) return; if (!visible || document.hidden || !onStart()) { running = false; return; } draw(t); raf = requestAnimationFrame(loop); }

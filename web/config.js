@@ -46,9 +46,9 @@ window.GPH_CONFIG = {
   FEATURED_MODELS: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna"],
   // Start page network picture: logos around the GamePay core. Add more files here when you have them (path under web/assets).
   NET_NODES: [
-    { logo: "assets/deepseek.png", name: "DeepSeek" }, { logo: "assets/openai-white.png", name: "OpenAI" },
-    { logo: "assets/anthropic.png", name: "Anthropic", tile: true }, { logo: "assets/provider-blue.png", tile: true },
-    { logo: "assets/xai.png", name: "xAI", tile: true }, { logo: "assets/qwen.png", name: "Qwen", tile: true }
+    { logo: "assets/net-deepseek.png", name: "DeepSeek" }, { logo: "assets/net-openai.png", name: "OpenAI" },
+    { logo: "assets/net-anthropic.png", name: "Anthropic" }, { logo: "assets/net-blue.png" },
+    { logo: "assets/net-xai.png", name: "xAI" }, { logo: "assets/net-qwen.png", name: "Qwen" }
   ],
   LIVE_EVERY_MS: 60000
 };

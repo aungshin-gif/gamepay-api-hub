@@ -460,3 +460,14 @@ body.noscroll { overflow: hidden; }
 .nn.sq { border-radius: 15px; overflow: hidden; background: #fff; border-color: rgba(219, 229, 255, .9); }
 .nn.sq img { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
 .netcore { display: none; }
+
+/* ---- evenness pass: identical logo tiles, and every left/right edge lines up (top bar = page column) ---- */
+.nn, .nn.sq { width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 16px; overflow: hidden; background: #fff; border: 1px solid rgba(206, 218, 255, .95); box-shadow: 0 10px 26px rgba(77, 107, 254, .22), 0 1px 0 #fff inset; }
+.nn img, .nn.sq img { display: block; width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
+.linkmore { margin-right: -6px; }
+@media (max-width: 480px) { .nn, .nn.sq { width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 13px; } }
+@media (min-width: 700px) {
+  .side { padding-block: 10px; padding-inline: max(20px, calc((100% - 1180px) / 2 + 20px)); }
+  .nav { margin-right: auto; }
+}
+@media (min-width: 1000px) { .side { padding-inline: max(24px, calc((100% - 1180px) / 2 + 24px)); } }
