@@ -508,7 +508,13 @@ button.fm:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(77, 
 .fm.more { border: 1.5px dashed #c3d1ff; background: rgba(255, 255, 255, .5); box-shadow: none; }
 .fplus { width: 44px; height: 44px; border-radius: 13px; flex: none; display: grid; place-items: center; font-size: 24px; font-weight: 300; color: var(--blue-deep); background: #eef2ff; }
 @media (prefers-reduced-motion: reduce) { .fgrp, .fgw { opacity: 1; transform: none; animation: none !important; } .flowsvg { opacity: 1; transition: none; } .fgrow::after { animation: none; } }
-@media (min-width: 700px) {
+@media (min-width: 700px) { .flow { padding: 34px 30px; } .ftiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } .fmlist { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 980px) {
   .flow { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, .85fr); gap: 70px; padding: 36px 34px; align-items: center; }
-  .ftiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fmlist { grid-template-columns: minmax(0, 1fr); }
 }
+
+.fm.soon { background: rgba(255, 255, 255, .6); border-style: dashed; border-color: #cfdaff; box-shadow: none; }
+.fm.soon img { filter: grayscale(.6); opacity: .7; }
+.fm.soon .fmt b { color: #5b6685; }
+.fsoon { margin-left: auto; flex: none; font-size: 11px; font-weight: 800; letter-spacing: .4px; padding: 3px 9px; border-radius: 999px; color: var(--blue-deep); background: #e9efff; }

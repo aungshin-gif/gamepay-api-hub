@@ -197,16 +197,20 @@
       var im = document.createElement("img"); im.src = LOGO[key] || ""; im.alt = ""; if (!LOGO[key]) im.hidden = true; t.appendChild(im);
       var tx = el("span", "fmt"); tx.appendChild(el("b", "", nm)); tx.appendChild(el("span", "", cnt + " models")); t.appendChild(tx); t.addEventListener("click", function () { b.click(); }); mg.appendChild(t);
     });
-    var more = el("div", "fm more"); more.appendChild(el("span", "fplus", "+")); var mt = el("span", "fmt"); mt.appendChild(el("b", "", "More")); mt.appendChild(el("span", "", "can be added")); more.appendChild(mt); mg.appendChild(more);
+    (cfg.MODEL_SOON || []).forEach(function (m) { // not connected yet: dimmed, not clickable
+      var t = el("div", "fm soon"), im = document.createElement("img"); im.src = m.logo; im.alt = ""; t.appendChild(im);
+      var tx = el("span", "fmt"); tx.appendChild(el("b", "", m.name)); tx.appendChild(el("span", "", "not connected")); t.appendChild(tx); t.appendChild(el("span", "fsoon", "Soon")); mg.appendChild(t);
+    });
+    var more = el("div", "fm more"); more.appendChild(el("span", "fplus", "+")); var mt = el("span", "fmt"); mt.appendChild(el("b", "", "More")); mt.appendChild(el("span", "", "can be added")); more.appendChild(mt); if (!(cfg.MODEL_SOON || []).length) mg.appendChild(more);
     models.appendChild(mg);
     var svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "flowsvg"); svg.setAttribute("aria-hidden", "true");
     box.appendChild(svg); box.appendChild(tools); box.appendChild(gw); box.appendChild(models);
 
-    function rect(e, br) { var r = e.getBoundingClientRect(); return { l: r.left - br.left, r: r.right - br.left, t: r.top - br.top, b: r.bottom - br.top, w: r.width, h: r.height }; }
+    function rect(e) { return { l: e.offsetLeft, r: e.offsetLeft + e.offsetWidth, t: e.offsetTop, b: e.offsetTop + e.offsetHeight, w: e.offsetWidth, h: e.offsetHeight }; } // layout position: not moved by the entrance animation
     function node(tag, attrs) { var e = document.createElementNS(NS, tag); Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); }); return e; }
     function draw() {
-      var br = box.getBoundingClientRect(), W = Math.round(br.width), H = Math.round(br.height); if (!W || !H) return;
-      var A = rect(tools, br), G = rect(gw, br), M = rect(models, br), horiz = G.l > A.r + 24;
+      var W = box.clientWidth, H = box.clientHeight; if (!W || !H) return;
+      var A = rect(tools), G = rect(gw), M = rect(models), horiz = G.l > A.r + 24;
       svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.textContent = "";
       var defs = node("defs", {}), lgd = node("linearGradient", { id: "flowg", gradientUnits: "userSpaceOnUse", x1: 0, y1: 0, x2: horiz ? W : 0, y2: horiz ? 0 : H });
       [["0", "#4d6bfe"], ["0.55", "#8b6cf0"], ["1", "#14b8a6"]].forEach(function (s) { lgd.appendChild(node("stop", { offset: s[0], "stop-color": s[1] })); }); defs.appendChild(lgd); svg.appendChild(defs);
