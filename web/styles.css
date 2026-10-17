@@ -518,3 +518,39 @@ button.fm:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(77, 
 .fm.soon img { filter: grayscale(.6); opacity: .7; }
 .fm.soon .fmt b { color: #5b6685; }
 .fsoon { margin-left: auto; flex: none; font-size: 11px; font-weight: 800; letter-spacing: .4px; padding: 3px 9px; border-radius: 999px; color: var(--blue-deep); background: #e9efff; }
+
+
+/* ===== smoothness pass: no live blur layers, no endless animations, calmer background ===== */
+.blob { display: none; }
+.card, .hero2, .flow, .side, .stats2 > div, .fcard, .feat, .nav, .composer, .sheet-bg, .ghostbtn, .hero2 .ghostbtn { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.card { background: rgba(255, 255, 255, .92); }
+.side { background: rgba(255, 255, 255, .95); }
+.nav { background: rgba(255, 255, 255, .97); }
+.composer { background: rgba(255, 255, 255, .97); }
+.sheet-bg { background: rgba(15, 26, 58, .55); }
+.hero2 { background: radial-gradient(520px 320px at 85% 20%, rgba(77, 107, 254, .12), transparent 70%), linear-gradient(135deg, #fff, #edf2ff); }
+.flow { background: radial-gradient(480px 300px at 50% 50%, rgba(77, 107, 254, .08), transparent 70%), linear-gradient(135deg, #fff, #eef3ff); }
+.grad, .grad2 { animation: none !important; }
+.steps3.in li, .steps3.in li:not(:last-child)::after { animation-iteration-count: 1 !important; }
+.fgrow::after { display: none; }
+.flow:not(.live) .flowp { animation-play-state: paused; }
+
+/* ===== How it works: always left to right from 600px, compact so it fits a tablet held upright ===== */
+@media (min-width: 600px) {
+  .flow { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, .9fr); gap: clamp(34px, 5vw, 70px); padding: 30px 22px; align-items: center; }
+  .ftiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .fmlist { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .fgrp { padding: 28px 10px 10px; } .fglabel, .fgsub { font-size: 9.5px; letter-spacing: 1.3px; }
+  .fti { width: 38px; height: 38px; border-radius: 11px; } .fti svg.ic { width: 19px; height: 19px; } .ft { padding: 10px 4px 8px; gap: 6px; } .ft b { font-size: 11.5px; }
+  .fgw { padding: 30px 12px 12px; gap: 8px; } .fgrow { font-size: 12.5px; padding: 8px 8px; } .fgpill b { font-size: 13.5px; } .fgpill { padding: 6px 12px 6px 7px; gap: 7px; } .fgpill img { width: 22px; height: 22px; }
+  .fm { padding: 8px 10px; gap: 10px; } .fm img, .fplus { width: 36px; height: 36px; border-radius: 11px; font-size: 20px; } .fmt b { font-size: 14px; } .fmt span { font-size: 11.5px; }
+  .fsoon { font-size: 10px; padding: 2px 7px; }
+}
+@media (min-width: 980px) {
+  .flow { padding: 36px 34px; }
+  .ftiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; } .fmlist { gap: 10px; }
+  .fgrp { padding: 30px 14px 14px; } .fglabel, .fgsub { font-size: 10.5px; letter-spacing: 1.6px; }
+  .fti { width: 44px; height: 44px; border-radius: 13px; } .fti svg.ic { width: 22px; height: 22px; } .ft { padding: 12px 6px 10px; gap: 7px; } .ft b { font-size: 12.5px; }
+  .fgw { padding: 34px 18px 18px; gap: 9px; } .fgrow { font-size: 13.5px; padding: 10px 14px; } .fgpill b { font-size: 15px; } .fgpill { padding: 7px 16px 7px 8px; gap: 9px; } .fgpill img { width: 24px; height: 24px; }
+  .fm { padding: 10px 12px; gap: 12px; } .fm img, .fplus { width: 44px; height: 44px; border-radius: 13px; font-size: 24px; } .fmt b { font-size: 15px; } .fmt span { font-size: 12.5px; }
+  .fsoon { font-size: 11px; padding: 3px 9px; }
+}
