@@ -172,8 +172,70 @@
     var all = $("featAll"); if (all) all.addEventListener("click", function () { goTab("models"); });
   }
 
+
+  // ---------- "How it works": your tools -> GamePay gateway -> models, joined by animated lines (like the LiteLLM / Vercel diagrams) ----------
+  function initFlow() {
+    var box = $("flow"); if (!box) return;
+    var NS = "http://www.w3.org/2000/svg", plats = [].slice.call(document.querySelectorAll("#platBoxes .plb")), provs = [].slice.call(document.querySelectorAll("#provBoxes .pbx")), sm = cfg.START_MODELS || {};
+    var LOGO = { deepseek: "assets/net-deepseek.png", openai: "assets/net-openai.png" };
+    function grp(cls, label) { var g = el("div", "fgrp " + cls); g.appendChild(el("span", "fglabel", label)); return g; }
+    // left: the tools (icons and settings come from the existing "Works with" buttons, so the set-up sheets keep working)
+    var tools = grp("ftools", "Your tools"), tg = el("div", "ftiles");
+    plats.forEach(function (b, i) {
+      var t = el("button", "ft t" + (i % 6)), ic = el("span", "fti"), sv = b.querySelector(".pli svg"), nm = b.querySelector(".plt b");
+      t.type = "button"; if (sv) ic.innerHTML = sv.outerHTML; t.appendChild(ic); t.appendChild(el("b", "", nm ? nm.textContent : "")); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
+    });
+    tools.appendChild(tg);
+    // middle: the gateway
+    var gw = el("div", "fgw"), pill = el("div", "fgpill"), lg = document.createElement("img"); lg.src = "assets/logo-192.png"; lg.alt = ""; lg.width = 24; lg.height = 24; pill.appendChild(lg); pill.appendChild(el("b", "", "GamePay API Hub"));
+    gw.appendChild(pill); gw.appendChild(el("span", "fgsub", "AI GATEWAY"));
+    ["One key for everything", "Token balance", "Live status", "Chat and pictures"].forEach(function (t, i) { var r = el("div", "fgrow", t); r.style.setProperty("--i", i); gw.appendChild(r); });
+    // right: providers that really answer through this gateway
+    var models = grp("fmodels", "Models"), mg = el("div", "fmlist");
+    provs.forEach(function (b) {
+      var nm = (b.querySelector(".pbt b") || {}).textContent || "", key = nm.toLowerCase(), cnt = (sm[key] || []).length, t = el("button", "fm"); t.type = "button";
+      var im = document.createElement("img"); im.src = LOGO[key] || ""; im.alt = ""; if (!LOGO[key]) im.hidden = true; t.appendChild(im);
+      var tx = el("span", "fmt"); tx.appendChild(el("b", "", nm)); tx.appendChild(el("span", "", cnt + " models")); t.appendChild(tx); t.addEventListener("click", function () { b.click(); }); mg.appendChild(t);
+    });
+    (cfg.MODEL_SOON || []).forEach(function (m) { // not connected yet: dimmed, not clickable
+      var t = el("div", "fm soon"), im = document.createElement("img"); im.src = m.logo; im.alt = ""; t.appendChild(im);
+      var tx = el("span", "fmt"); tx.appendChild(el("b", "", m.name)); tx.appendChild(el("span", "", "not connected")); t.appendChild(tx); t.appendChild(el("span", "fsoon", "Soon")); mg.appendChild(t);
+    });
+    var more = el("div", "fm more"); more.appendChild(el("span", "fplus", "+")); var mt = el("span", "fmt"); mt.appendChild(el("b", "", "More")); mt.appendChild(el("span", "", "can be added")); more.appendChild(mt); if (!(cfg.MODEL_SOON || []).length) mg.appendChild(more);
+    models.appendChild(mg);
+    var svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "flowsvg"); svg.setAttribute("aria-hidden", "true");
+    box.appendChild(svg); box.appendChild(tools); box.appendChild(gw); box.appendChild(models);
+
+    function rect(e) { return { l: e.offsetLeft, r: e.offsetLeft + e.offsetWidth, t: e.offsetTop, b: e.offsetTop + e.offsetHeight, w: e.offsetWidth, h: e.offsetHeight }; } // layout position: not moved by the entrance animation
+    function node(tag, attrs) { var e = document.createElementNS(NS, tag); Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); }); return e; }
+    function draw() {
+      var W = box.clientWidth, H = box.clientHeight; if (!W || !H) return;
+      var A = rect(tools), G = rect(gw), M = rect(models), horiz = G.l > A.r + 24;
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.textContent = "";
+      var defs = node("defs", {}), lgd = node("linearGradient", { id: "flowg", gradientUnits: "userSpaceOnUse", x1: 0, y1: 0, x2: horiz ? W : 0, y2: horiz ? 0 : H });
+      [["0", "#4d6bfe"], ["0.55", "#8b6cf0"], ["1", "#14b8a6"]].forEach(function (s) { lgd.appendChild(node("stop", { offset: s[0], "stop-color": s[1] })); }); defs.appendChild(lgd); svg.appendChild(defs);
+      function link(a, b, k) {
+        [[0.2, 0.3], [0.5, 0.5], [0.8, 0.7]].forEach(function (f, i) {
+          var x1, y1, x2, y2, d;
+          if (horiz) { x1 = a.r; y1 = a.t + a.h * f[k ? 1 : 0]; x2 = b.l; y2 = b.t + b.h * f[k ? 0 : 1]; var xm = (x1 + x2) / 2; d = "M" + x1 + " " + y1 + " C" + xm + " " + y1 + " " + xm + " " + y2 + " " + x2 + " " + y2; }
+          else { x1 = a.l + a.w * f[k ? 1 : 0]; y1 = a.b; x2 = b.l + b.w * f[k ? 0 : 1]; y2 = b.t; var ym = (y1 + y2) / 2; d = "M" + x1 + " " + y1 + " C" + x1 + " " + ym + " " + x2 + " " + ym + " " + x2 + " " + y2; }
+          svg.appendChild(node("path", { d: d, fill: "none", stroke: "url(#flowg)", "stroke-width": 1.8, "stroke-linecap": "round", opacity: 0.5 }));
+          if (!reduce) svg.appendChild(node("path", { d: d, fill: "none", stroke: "url(#flowg)", "stroke-width": 2.2, "stroke-linecap": "round", "class": "flowp" }));
+          [[x1, y1], [x2, y2]].forEach(function (p) { svg.appendChild(node("circle", { cx: p[0], cy: p[1], r: 4.2, fill: "#fff", stroke: "url(#flowg)", "stroke-width": 1.8 })); });
+          if (!reduce) { var dot = node("circle", { r: 3.4, fill: "#4d6bfe" }), am = node("animateMotion", { dur: "3.4s", begin: (i * 0.9 + k * 1.1) + "s", repeatCount: "indefinite", path: d }); dot.appendChild(am); svg.appendChild(dot); }
+        });
+      }
+      link(A, G, 0); link(G, M, 1);
+    }
+    draw();
+    if ("ResizeObserver" in window) new ResizeObserver(draw).observe(box); else window.addEventListener("resize", draw);
+    window.addEventListener("load", draw); if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+    if (reduce || !("IntersectionObserver" in window)) { box.classList.add("in"); return; }
+    var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { box.classList.add("in"); io.disconnect(); } }, { threshold: 0.25 }); io.observe(box);
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow();
 })();

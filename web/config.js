@@ -50,5 +50,8 @@ window.GPH_CONFIG = {
     { logo: "assets/net-anthropic.png", name: "Anthropic" }, { logo: "assets/net-blue.png" },
     { logo: "assets/net-xai.png", name: "xAI" }, { logo: "assets/net-qwen.png", name: "Qwen" }
   ],
+  // "How it works" diagram: providers shown dimmed with a "Soon" tag because no channel serves them yet.
+  // When a channel exists, delete the entry here and list its models in START_MODELS (and add its logo to the diagram code).
+  MODEL_SOON: [{ name: "xAI", logo: "assets/net-xai.png" }, { name: "Qwen", logo: "assets/net-qwen.png" }],
   LIVE_EVERY_MS: 60000
 };
