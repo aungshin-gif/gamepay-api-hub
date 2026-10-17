@@ -45,6 +45,10 @@ window.GPH_CONFIG = {
   // Start page: models shown as cards under "Featured models" (ids must exist in PRICES / START_MODELS for tags and prices).
   FEATURED_MODELS: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna"],
   // Start page network picture: logos around the GamePay core. Add more files here when you have them (path under web/assets).
-  NET_NODES: [{ logo: "assets/deepseek.png", name: "DeepSeek" }, { logo: "assets/openai-white.png", name: "OpenAI" }],
+  NET_NODES: [
+    { logo: "assets/deepseek.png", name: "DeepSeek" }, { logo: "assets/openai-white.png", name: "OpenAI" },
+    { logo: "assets/anthropic.png", name: "Anthropic", tile: true }, { logo: "assets/provider-blue.png", tile: true },
+    { logo: "assets/xai.png", name: "xAI", tile: true }, { logo: "assets/qwen.png", name: "Qwen", tile: true }
+  ],
   LIVE_EVERY_MS: 60000
 };
