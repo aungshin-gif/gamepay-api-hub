@@ -425,11 +425,21 @@
   // The key box lives on the My key tab; Chat shows a short reminder (with a shortcut) until a key has been entered.
   function hasKey() { return !!(state.key || $("keyInput").value.trim()); }
   function syncChatKeyNote() { $("chatNeedKey").hidden = MOCK || hasKey(); }
+  // 3 steps on Start: play the animation when the box scrolls into view (and again each time Start is opened).
+  var stepsIO = null;
+  function watchSteps() {
+    var ol = $("steps3"); if (!ol) return; ol.classList.remove("in");
+    if (!("IntersectionObserver" in window)) { ol.classList.add("in"); return; }
+    if (stepsIO) stepsIO.disconnect();
+    stepsIO = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { void ol.offsetWidth; ol.classList.add("in"); stepsIO.disconnect(); } }, { threshold: 0.35 });
+    stepsIO.observe(ol);
+  }
   function showTab(name) {
     document.body.setAttribute("data-tab", name);
     document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-tab") === name); });
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + name); });
     if (name === "chat") syncChatKeyNote();
+    if (name === "start") watchSteps();
     window.scrollTo(0, 0);
   }
   function sendChat() {
@@ -588,9 +598,15 @@
         var d = j && j.data && j.data[0]; if (!d) throw new Error("The gateway sent no picture.");
         return d.b64_json ? "data:image/png;base64," + d.b64_json : d.url; }); });
   }
-  $("imgCopy").addEventListener("click", function () {
-    var t = $("imgPrompt").value.trim(), b = this, lab = b.querySelector("span"); if (!t) return;
-    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { lab.textContent = "Copied"; setTimeout(function () { lab.textContent = "Copy prompt"; }, 1400); }).catch(function () { lab.textContent = "Press and hold the box to copy"; });
+  // Paste prompt: puts the clipboard text into the picture box (the browser may ask for permission the first time).
+  $("imgPaste").addEventListener("click", function () {
+    var b = this, lab = b.querySelector("span"), box = $("imgPrompt");
+    function say(t) { lab.textContent = t; setTimeout(function () { lab.textContent = "Paste prompt"; }, 1800); }
+    if (!navigator.clipboard || !navigator.clipboard.readText) { say("Press and hold the box to paste"); return; }
+    navigator.clipboard.readText().then(function (t) {
+      t = (t || "").trim(); if (!t) { say("Clipboard is empty"); return; }
+      box.value = t; box.focus(); say("Pasted");
+    }).catch(function () { say("Allow paste, or hold the box"); });
   });
   $("imgGo").addEventListener("click", function () {
     if (imgBusy) return;
@@ -699,5 +715,5 @@
   if (cfg.SUPPORT_TELEGRAM) { var tgb = $("tgBtn"); tgb.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; tgb.hidden = false; }
 
   loadHist(); renderStrip();
-  document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons();
+  document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons(); watchSteps();
 })();
