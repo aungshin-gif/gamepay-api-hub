@@ -12,7 +12,7 @@
   // Everything is real 3D (rotate, tilt, perspective) drawn on one canvas; the logos are DOM nodes placed at the branch tips.
   function initNet() {
     var box = $("net"), cv = $("netCv"), holder = $("netNodes"); if (!box || !cv || !holder) return;
-    var ctx = cv.getContext("2d"), logos = cfg.NET_NODES || [], DECOR = 12, total = logos.length + DECOR, w = 0, h = 0, dpr = 1, raf = 0, running = false, visible = true;
+    var ctx = cv.getContext("2d"), logos = cfg.NET_NODES || [], DECOR = 8, total = logos.length + DECOR, w = 0, h = 0, dpr = 1, raf = 0, running = false, visible = true, lastT = 0;
     function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
     function nrm(v) { var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
     function crs(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
@@ -21,7 +21,7 @@
     function mix(c0, c1, u) { return [lerp(c0[0], c1[0], u), lerp(c0[1], c1[1], u), lerp(c0[2], c1[2], u)]; }
     var BLUE = [77, 107, 254], VIOLET = [139, 108, 240], TEAL = [45, 212, 191];
     function ramp(u) { return u < 0.55 ? mix(BLUE, VIOLET, u / 0.55) : mix(VIOLET, TEAL, (u - 0.55) / 0.45); }
-    var R = rng(11), SR = 0.27, N = 18, gold = Math.PI * (3 - Math.sqrt(5)), logoAt = {}, nodes = [], dust = [], organelles = [], bumps = [], rings = [];
+    var R = rng(11), SR = 0.27, N = 14, RN = 48, gold = Math.PI * (3 - Math.sqrt(5)), logoAt = {}, nodes = [], dust = [], organelles = [], bumps = [], rings = [];
     for (var i = 0; i < total; i++) {
       var fixed = i < logos.length, j = i - logos.length, y = 1 - (j + 0.5) * 2 / DECOR, rr = Math.sqrt(1 - y * y), th = j * gold, l = fixed ? logos[i] : null, phi = -Math.PI / 2 + i * 6.2832 / Math.max(1, logos.length);
       var d = fixed ? [Math.cos(phi), Math.sin(phi), 0] : [Math.cos(th) * rr, y, Math.sin(th) * rr], de;
@@ -33,7 +33,7 @@
       var p0 = [d[0] * SR, d[1] * SR, d[2] * SR], p3 = [d[0] * 0.97, d[1] * 0.97, d[2] * 0.97];
       var p1 = add(add([d[0] * 0.47, d[1] * 0.47, d[2] * 0.47], u1, k1 * 0.55), u2, k2 * 0.35), p2 = add(add([d[0] * 0.74, d[1] * 0.74, d[2] * 0.74], u1, -k1 * 0.4), u2, k2 * 0.5), pts = [];
       for (var s = 0; s <= N; s++) { var u = s / N, v = 1 - u; pts.push([v * v * v * p0[0] + 3 * v * v * u * p1[0] + 3 * v * u * u * p2[0] + u * u * u * p3[0], v * v * v * p0[1] + 3 * v * v * u * p1[1] + 3 * v * u * u * p2[1] + u * u * u * p3[1], v * v * v * p0[2] + 3 * v * v * u * p1[2] + 3 * v * u * u * p2[2] + u * u * u * p3[2]]); }
-      var twigs = []; [0.3, 0.5, 0.7].forEach(function (tt, q) {
+      var twigs = []; [0.4, 0.72].forEach(function (tt, q) {
         var ix = Math.round(tt * N), a0 = pts[ix], tg = nrm([pts[ix + 1][0] - pts[ix - 1][0], pts[ix + 1][1] - pts[ix - 1][1], pts[ix + 1][2] - pts[ix - 1][2]]), sd = nrm(crs(tg, [R() - 0.5, R() - 0.5, R() - 0.5])), sg = (q + i) % 2 ? 1 : -1, ln = 0.1 + R() * 0.07;
         var m = add(add(a0, tg, 0.05), sd, 0.04 * sg), e = add(add(a0, tg, 0.075), sd, ln * sg), tp = [];
         for (var s2 = 0; s2 <= 6; s2++) { var uu = s2 / 6, vv = 1 - uu; tp.push([vv * vv * a0[0] + 2 * vv * uu * m[0] + uu * uu * e[0], vv * vv * a0[1] + 2 * vv * uu * m[1] + uu * uu * e[1], vv * vv * a0[2] + 2 * vv * uu * m[2] + uu * uu * e[2]]); }
@@ -41,16 +41,16 @@
       });
       nodes.push({ pts: pts, twigs: twigs, el: de, big: !!l, fixed: fixed, g: null, ph: i * 0.137 + R() * 0.2, flash: 0, sx: 0, sy: 0, dz: 0, bz: 0 });
     }
-    for (var q = 0; q < 42; q++) { var dd = nrm([R() - 0.5, R() - 0.5, R() - 0.5]), rd = 0.35 + R() * 0.85; dust.push({ p: [dd[0] * rd, dd[1] * rd, dd[2] * rd], s: 0.8 + R() * 1.4, ph: R() * 6.28 }); }
+    for (var q = 0; q < 20; q++) { var dd = nrm([R() - 0.5, R() - 0.5, R() - 0.5]), rd = 0.35 + R() * 0.85; dust.push({ p: [dd[0] * rd, dd[1] * rd, dd[2] * rd], s: 0.8 + R() * 1.4, ph: R() * 6.28 }); }
     for (var q2 = 0; q2 < 14; q2++) { var d2 = nrm([R() - 0.5, R() - 0.5, R() - 0.5]), r2 = SR * (0.2 + R() * 0.62); organelles.push({ p: [d2[0] * r2, d2[1] * r2, d2[2] * r2], s: 0.8 + R() * 1.6 }); }
     for (var q3 = 0; q3 < 11; q3++) { var d3 = nrm([R() - 0.5, R() - 0.5, R() - 0.5]); bumps.push({ p: [d3[0] * SR, d3[1] * SR, d3[2] * SR], s: 0.05 + R() * 0.05 }); }
     [[1.15, 0, 0.42], [0.5, 0.95, 0.5]].forEach(function (o) { // two orbit rings round the soma, tilted differently
       var pr = [], c1 = Math.cos(o[0]), s1 = Math.sin(o[0]), c2 = Math.cos(o[1]), s2b = Math.sin(o[1]);
-      for (var s3 = 0; s3 <= 72; s3++) { var an = s3 / 72 * 6.2832, x = Math.cos(an) * o[2], z = Math.sin(an) * o[2], y1 = -z * s1, z1 = z * c1, x2 = x * c2 - y1 * s2b, y2 = x * s2b + y1 * c2; pr.push([x2, y2, z1]); }
+      for (var s3 = 0; s3 <= RN; s3++) { var an = s3 / RN * 6.2832, x = Math.cos(an) * o[2], z = Math.sin(an) * o[2], y1 = -z * s1, z1 = z * c1, x2 = x * c2 - y1 * s2b, y2 = x * s2b + y1 * c2; pr.push([x2, y2, z1]); }
       rings.push({ pts: pr, bead: R() * 6.28 });
     });
 
-    function size() { w = box.clientWidth; h = box.clientHeight; dpr = Math.min(window.devicePixelRatio || 1, 2); cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px"; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    function size() { w = box.clientWidth; h = box.clientHeight; dpr = Math.min(window.devicePixelRatio || 1, 1.25); cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px"; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
     var cx, cy, rx, ry, r0, G0 = { ca: 1, sa: 0, ct: 1, st: 0 }, G1 = { ca: 1, sa: 0, ct: 1, st: 0 };
     function P(p, g) { g = g || G0; var x1 = p[0] * g.ca + p[2] * g.sa, z1 = -p[0] * g.sa + p[2] * g.ca, y2 = p[1] * g.ct - z1 * g.st, z2 = p[1] * g.st + z1 * g.ct, s = 1 / (1 - z2 * 0.28); return [cx + x1 * rx * s, cy + y2 * ry * s, z2, s]; }
     function rgba(c, a) { return "rgba(" + (c[0] | 0) + "," + (c[1] | 0) + "," + (c[2] | 0) + "," + a.toFixed(3) + ")"; }
@@ -79,8 +79,8 @@
     }
     function ringPass(rg, front, t) {
       var pr = rg.pts.map(function (p) { return P(p); });
-      for (var s = 0; s < pr.length - 1; s++) { var a = pr[s], b = pr[s + 1], zm = (a[2] + b[2]) / 2; if ((zm >= 0) !== front) continue; strokeSeg(a, b, s / 72, 1.1 * a[3], 0.16 + 0.55 * (zm + 1) / 2, front); }
-      var bi = ((t * 0.0006 + rg.bead) % 6.2832) / 6.2832 * 72, i0 = Math.floor(bi) % 72, bp = pr[i0]; if ((bp[2] >= 0) === front) glowDot(bp[0], bp[1], 6 * bp[3], VIOLET, 0.45 + 0.4 * (bp[2] + 1) / 2);
+      for (var s = 0; s < pr.length - 1; s++) { var a = pr[s], b = pr[s + 1], zm = (a[2] + b[2]) / 2; if ((zm >= 0) !== front) continue; strokeSeg(a, b, s / RN, 1.1 * a[3], 0.16 + 0.55 * (zm + 1) / 2, front); }
+      var bi = ((t * 0.0006 + rg.bead) % 6.2832) / 6.2832 * RN, i0 = Math.floor(bi) % RN, bp = pr[i0]; if ((bp[2] >= 0) === front) glowDot(bp[0], bp[1], 6 * bp[3], VIOLET, 0.45 + 0.4 * (bp[2] + 1) / 2);
     }
     function soma(t, front) {
       var pulse = 1 + 0.03 * Math.sin(t * 0.0016), rr = r0 * pulse;
@@ -122,7 +122,7 @@
         n.el.style.transform = "translate3d(" + (n.sx - cx).toFixed(1) + "px," + (n.sy - cy).toFixed(1) + "px,0) scale(" + (n.fixed ? 1 : 0.8 + 0.4 * n.dz).toFixed(3) + ")"; n.el.style.opacity = op.toFixed(2); n.el.style.zIndex = String(n.fixed ? 300 : Math.round(n.dz * 100));
       });
     }
-    function loop(t) { if (!running) return; if (!visible || document.hidden || !onStart()) { running = false; return; } draw(t); raf = requestAnimationFrame(loop); }
+    function loop(t) { if (!running) return; if (!visible || document.hidden || !onStart()) { running = false; return; } if (t - lastT >= 30) { lastT = t; draw(t); } raf = requestAnimationFrame(loop); } // about 30 frames a second is plenty and keeps a tablet cool
     function kick() { if (reduce) { size(); draw(0); return; } if (!running && visible && !document.hidden && onStart()) { running = true; raf = requestAnimationFrame(loop); } }
     size(); draw(0);
     if ("ResizeObserver" in window) new ResizeObserver(function () { size(); draw(performance.now()); kick(); }).observe(box); else window.addEventListener("resize", function () { size(); kick(); });
@@ -183,13 +183,13 @@
     var tools = grp("ftools", "Your tools"), tg = el("div", "ftiles");
     plats.forEach(function (b, i) {
       var t = el("button", "ft t" + (i % 6)), ic = el("span", "fti"), sv = b.querySelector(".pli svg"), nm = b.querySelector(".plt b");
-      t.type = "button"; if (sv) ic.innerHTML = sv.outerHTML; t.appendChild(ic); t.appendChild(el("b", "", nm ? nm.textContent : "")); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
+      t.type = "button"; if (sv) ic.innerHTML = sv.outerHTML; t.appendChild(ic); t.appendChild(el("b", "", nm ? nm.textContent.replace("Your own app", "Your app") : "")); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
     });
     tools.appendChild(tg);
     // middle: the gateway
     var gw = el("div", "fgw"), pill = el("div", "fgpill"), lg = document.createElement("img"); lg.src = "assets/logo-192.png"; lg.alt = ""; lg.width = 24; lg.height = 24; pill.appendChild(lg); pill.appendChild(el("b", "", "GamePay API Hub"));
     gw.appendChild(pill); gw.appendChild(el("span", "fgsub", "AI GATEWAY"));
-    ["One key for everything", "Token balance", "Live status", "Chat and pictures"].forEach(function (t, i) { var r = el("div", "fgrow", t); r.style.setProperty("--i", i); gw.appendChild(r); });
+    ["One key", "Token balance", "Live status", "Chat + pictures"].forEach(function (t, i) { var r = el("div", "fgrow", t); r.style.setProperty("--i", i); gw.appendChild(r); });
     // right: providers that really answer through this gateway
     var models = grp("fmodels", "Models"), mg = el("div", "fmlist");
     provs.forEach(function (b) {
@@ -199,7 +199,7 @@
     });
     (cfg.MODEL_SOON || []).forEach(function (m) { // not connected yet: dimmed, not clickable
       var t = el("div", "fm soon"), im = document.createElement("img"); im.src = m.logo; im.alt = ""; t.appendChild(im);
-      var tx = el("span", "fmt"); tx.appendChild(el("b", "", m.name)); tx.appendChild(el("span", "", "not connected")); t.appendChild(tx); t.appendChild(el("span", "fsoon", "Soon")); mg.appendChild(t);
+      var tx = el("span", "fmt"); tx.appendChild(el("b", "", m.name)); t.appendChild(tx); t.appendChild(el("span", "fsoon", "Soon")); mg.appendChild(t);
     });
     var more = el("div", "fm more"); more.appendChild(el("span", "fplus", "+")); var mt = el("span", "fmt"); mt.appendChild(el("b", "", "More")); mt.appendChild(el("span", "", "can be added")); more.appendChild(mt); if (!(cfg.MODEL_SOON || []).length) mg.appendChild(more);
     models.appendChild(mg);
@@ -222,7 +222,6 @@
           svg.appendChild(node("path", { d: d, fill: "none", stroke: "url(#flowg)", "stroke-width": 1.8, "stroke-linecap": "round", opacity: 0.5 }));
           if (!reduce) svg.appendChild(node("path", { d: d, fill: "none", stroke: "url(#flowg)", "stroke-width": 2.2, "stroke-linecap": "round", "class": "flowp" }));
           [[x1, y1], [x2, y2]].forEach(function (p) { svg.appendChild(node("circle", { cx: p[0], cy: p[1], r: 4.2, fill: "#fff", stroke: "url(#flowg)", "stroke-width": 1.8 })); });
-          if (!reduce) { var dot = node("circle", { r: 3.4, fill: "#4d6bfe" }), am = node("animateMotion", { dur: "3.4s", begin: (i * 0.9 + k * 1.1) + "s", repeatCount: "indefinite", path: d }); dot.appendChild(am); svg.appendChild(dot); }
         });
       }
       link(A, G, 0); link(G, M, 1);
@@ -231,6 +230,7 @@
     if ("ResizeObserver" in window) new ResizeObserver(draw).observe(box); else window.addEventListener("resize", draw);
     window.addEventListener("load", draw); if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
     if (reduce || !("IntersectionObserver" in window)) { box.classList.add("in"); return; }
+    new IntersectionObserver(function (es) { box.classList.toggle("live", es[0].isIntersecting); }).observe(box); // dashes only run while the diagram is on screen
     var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { box.classList.add("in"); io.disconnect(); } }, { threshold: 0.25 }); io.observe(box);
   }
 
