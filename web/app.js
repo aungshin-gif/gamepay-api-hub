@@ -637,7 +637,7 @@
       '    model="gpt-6-luna",', '    messages=[{"role": "user", "content": "Hi"}])', "print(reply.choices[0].message.content)", "",
       "export OPENAI_BASE_URL=" + BASE_V1, "export OPENAI_API_KEY=YOUR_KEY", "", "const res = await fetch(BASE + \"/models\", {", "  headers: { Authorization: \"Bearer \" + key }", "});", ""
     ];
-    var slide = $("codeSlide"); for (var k = 0; k < 2; k++) { var pre = document.createElement("pre"); pre.textContent = lines.join("\n"); slide.appendChild(pre); }
+    var slide = $("codeSlide"); if (!slide) return; for (var k = 0; k < 2; k++) { var pre = document.createElement("pre"); pre.textContent = lines.join("\n"); slide.appendChild(pre); }
   })();
   // Pop-up sheet (used for the model lists and the platform settings).
   var sheetBg = $("sheetBg"), sheetFrom = null;

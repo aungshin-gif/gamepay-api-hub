@@ -343,3 +343,12 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - `GATEWAY_URL` in `web/config.js` was switched to `https://api.gamepayhub.shop` after the owner opened `https://api.gamepayhub.shop/v1/models` in a browser and saw a JSON answer. The old Railway address (`...up.railway.app`) still works; do not delete it.
 - Railway's trial only allows one custom domain, so the "custom domain limit" banner is expected. No upgrade was needed.
 - Not verified from the sandbox (it cannot reach the gateway): CORS and chat streaming through the new domain from the dashboard. Check with a real key after the switch.
+
+## Update 2026-10-18 (Main page redesign, step 1 of the OpenRouter-style plan)
+
+- Owner direction: OpenRouter-like structure, **wide / horizontal** (tablet landscape), **glass + light + soft blue**, nice animation, no login system. The Start page now has: hero (headline + the GamePay "brain cell" network), count-up stats, 4 feature cards, Featured models (cards with prices from `PRICES`), Providers, Works with, 3 steps.
+- Layout: from 700px wide a **top bar** replaces the bottom nav and the old left sidebar (CSS block at the end of `web/styles.css`, "Main page redesign"). Under 700px the bottom nav stays. Main width is 1180px; Chat / My key / Guide are capped at 900px.
+- New file `web/home.js` (self-contained): network picture (canvas lines + DOM logo nodes on a turning sphere, curved gradient lines, travelling lights; pauses off-screen / on other tabs; static for reduced motion), stats, featured cards, top-bar "Get a key" (Telegram) button.
+- Settings in `web/config.js`: `NET_NODES` (logos around the core; **only DeepSeek and OpenAI logos exist so far; the owner will send more**; the other nodes are plain decorative dots), `FEATURED_MODELS`.
+- Not done yet (next steps): Models catalog page in the OpenRouter style (filters on the side, one row per model with context and prices), Docs/Guide polish, footer. Prices for OpenAI models are still unset ("price: ask").
+- Checked with Playwright (demo mode) at 390, 820 and 1280 px: no console errors, no horizontal scroll. Not checked on the real tablet (look, frame rate of the network animation).

@@ -42,5 +42,9 @@ window.GPH_CONFIG = {
     ]
   },
   // How often the Models tab re-checks the gateway while the page is open and visible.
+  // Start page: models shown as cards under "Featured models" (ids must exist in PRICES / START_MODELS for tags and prices).
+  FEATURED_MODELS: ["deepseek-flash", "deepseek-v4-pro", "gpt-6-luna"],
+  // Start page network picture: logos around the GamePay core. Add more files here when you have them (path under web/assets).
+  NET_NODES: [{ logo: "assets/deepseek.png", name: "DeepSeek" }, { logo: "assets/openai-white.png", name: "OpenAI" }],
   LIVE_EVERY_MS: 60000
 };
