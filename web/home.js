@@ -266,8 +266,63 @@
     new IntersectionObserver(function (es) { box.classList.toggle("live", es[0].isIntersecting); }).observe(box); // only moves while on screen
   }
 
+
+  // ---------- "Try it like this": one chat request per model family, each shown in a UI that looks like that family's chat ----------
+  function initDemo() {
+    var box = $("demo"); if (!box) return;
+    var Q = "What does an API gateway do?", A = "It gives your tools one front door: one key and one address. The gateway then sends each request to the right model and counts the tokens you use.";
+    var TABS = [
+      { id: "openai", label: "OpenAI models", logo: "assets/net-openai.png", model: "gpt-4.1-mini", pt: 14, ct: 36 },
+      { id: "deepseek", label: "DeepSeek models", logo: "assets/net-deepseek.png", model: "deepseek-flash", pt: 14, ct: 74, think: true }
+    ];
+    var cur = 0, n = 0, hold = 0, timer = null, visible = true, panes = [];
+    function curl(m) { return 'curl ' + (cfg.GATEWAY_URL || "") + '/v1/chat/completions \\\n  -H "Authorization: Bearer YOUR_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"model": "' + m + '", "messages": [{"role": "user", "content": "' + Q + '"}]}\''; }
+    function costText(t) { var p = (cfg.PRICES || {})[t.model]; if (!p) return "price: not set yet"; var c = (t.pt * p.input + t.ct * p.output) / 1e6; return "≈ $" + c.toFixed(7).replace(/0+$/, ""); }
+    function jsonText(t, txt) { return '{\n  "model": "' + t.model + '",\n  "choices": [{ "message": { "role": "assistant", "content": "' + txt + '" } }],\n  "usage": { "prompt_tokens": ' + t.pt + ', "completion_tokens": ' + t.ct + ' }\n}'; }
+    function typed(cls) { var w = el("span", "typed " + (cls || "")), g = el("span", "ghost", A), l = el("span", "live"); w.appendChild(g); w.appendChild(l); return { w: w, l: l }; }
+    function img(src, h2) { var i = document.createElement("img"); i.src = src; i.alt = ""; i.height = h2; return i; }
+
+    var tabs = el("div", "dtabs"), grid = el("div", "dgrid");
+    TABS.forEach(function (t, i) {
+      var b = el("button", "dtab" + (i === 0 ? " on" : "")); b.type = "button"; b.appendChild(img(t.logo, 20)); b.appendChild(el("span", "", t.label)); tabs.appendChild(b);
+      b.addEventListener("click", function () { cur = i; n = 0; hold = 0; [].forEach.call(tabs.children, function (x, k) { x.classList.toggle("on", k === i); }); panes.forEach(function (p, k) { p.root.hidden = k !== i; }); paint(); kick(); });
+      // left: the chat window in this family's look
+      var chat = el("div", "dchat dc-" + t.id), head = el("div", "dch"), msgs = el("div", "dcm"), comp = el("div", "dcc"), ans = typed();
+      if (t.id === "openai") { head.appendChild(el("b", "", t.model)); head.appendChild(el("span", "dcaret", "⌄")); }
+      else { var lg = el("span", "dclogo"); lg.appendChild(img(t.logo, 20)); head.appendChild(lg); head.appendChild(el("b", "", t.model)); head.appendChild(el("span", "dchip", "DeepThink")); }
+      msgs.appendChild(el("div", "dcu", Q));
+      var row = el("div", "dca"), av = el("span", "dcav"); av.appendChild(img(t.logo, t.id === "openai" ? 18 : 20)); row.appendChild(av);
+      var body = el("div", "dcab"); if (t.think) body.appendChild(el("span", "dcthink", "Thought for a few seconds ›")); body.appendChild(ans.w); row.appendChild(body); msgs.appendChild(row);
+      if (t.id === "openai") { comp.appendChild(el("span", "dcplus", "+")); comp.appendChild(el("span", "dcph", "Ask anything")); comp.appendChild(el("span", "dcsend", "↑")); }
+      else { comp.appendChild(el("span", "dcph", "Message " + t.model)); comp.appendChild(el("span", "dchip on", "DeepThink")); comp.appendChild(el("span", "dcsend", "↑")); }
+      chat.appendChild(head); chat.appendChild(msgs); chat.appendChild(comp);
+      // right: the request and the (shortened) response
+      var code = el("div", "dcode"), bar = el("div", "dcb"), cb = el("button", "small"); cb.type = "button"; cb.textContent = "Copy"; cb.setAttribute("data-copytext", curl(t.model));
+      bar.appendChild(el("span", "dcl", "Request")); bar.appendChild(cb); code.appendChild(bar);
+      var pre = el("pre", "dpre"); pre.textContent = curl(t.model); code.appendChild(pre);
+      code.appendChild(el("div", "dcl dres", "Response (shortened)"));
+      var rw = el("div", "rwrap"), gh = el("pre", "dpre ghost2"), rp = el("pre", "dpre live2"); gh.textContent = jsonText(t, A); rw.appendChild(gh); rw.appendChild(rp); code.appendChild(rw); // the ghost holds the full text so the block never changes height
+      code.appendChild(el("div", "dfoot", (t.pt + t.ct) + " tokens  ·  " + costText(t) + (t.think ? "  ·  thinking tokens count as output" : "")));
+      var pane = el("div", "dpane"); pane.hidden = i !== 0; pane.appendChild(chat); pane.appendChild(code); grid.appendChild(pane);
+      panes.push({ root: pane, t: t, a: ans.l, r: rp });
+    });
+    box.appendChild(tabs); box.appendChild(grid);
+
+    function paint() { var txt = A.slice(0, n), p = panes[cur]; p.a.textContent = txt; p.r.textContent = jsonText(p.t, txt); p.a.classList.toggle("caret", n < A.length); p.r.classList.toggle("caret", n < A.length); }
+    function tick() {
+      if (!visible || document.hidden || !onStart()) { stop(); return; }
+      if (n < A.length) { n = Math.min(A.length, n + 2); hold = 0; paint(); } else if (++hold > 70) { n = 0; hold = 0; paint(); } // about 3 s pause, then type again
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function kick() { if (reduce) { n = A.length; paint(); return; } if (!timer && visible && !document.hidden && onStart()) timer = setInterval(tick, 45); }
+    if (reduce) { n = A.length; panes.forEach(function (p) { p.a.textContent = A; p.r.textContent = jsonText(p.t, A); }); return; }
+    n = 0; paint();
+    if ("IntersectionObserver" in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) kick(); else stop(); }, { threshold: 0.2 }).observe(box);
+    document.addEventListener("visibilitychange", kick); $("nav").addEventListener("click", function () { setTimeout(kick, 80); }); kick();
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools(); initDemo();
 })();
