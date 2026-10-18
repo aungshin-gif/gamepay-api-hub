@@ -367,8 +367,45 @@
     fill();
   }
 
+  // ---------- Prices + FAQ + quick key check, in the Store look (lavender, violet) ----------
+  function initInfo() {
+    var anchor = document.querySelector("#tab-start .stepsc"); if (!anchor) return;
+    var wrap = el("div", "sinfo");
+    // quick key check: hands the key to the normal Check on the My key tab, so there is one code path
+    var kc = el("div", "sx sx-key"), kt = el("div", "sxt"); kt.appendChild(el("h2", "", "Check your key")); kt.appendChild(el("p", "", "Paste it here to see how much is left."));
+    var kf = el("form", "kform"), ki = el("input", "kin"); ki.type = "password"; ki.placeholder = "sk-..."; ki.autocomplete = "off"; ki.setAttribute("autocapitalize", "off"); ki.setAttribute("spellcheck", "false");
+    var kb = el("button", "kgo", "Check"); kb.type = "submit"; kf.appendChild(ki); kf.appendChild(kb); kc.appendChild(kt); kc.appendChild(kf);
+    kf.addEventListener("submit", function (e) { e.preventDefault(); var v = ki.value.trim(), main = $("keyInput"); if (!v || !main) return; main.value = v; ki.value = ""; var tab = document.querySelector('#nav [data-tab="key"]'); if (tab) tab.click(); var cb = $("checkBtn"); if (cb) setTimeout(function () { cb.click(); }, 60); });
+    wrap.appendChild(kc);
+    // prices (only models that really have a price set; nothing is guessed)
+    var P = cfg.PRICES || {}, ids = Object.keys(P);
+    if (ids.length) {
+      var pc = el("div", "sx"), ph = el("div", "sxt"); ph.appendChild(el("h2", "", "Prices")); ph.appendChild(el("p", "", "US dollars per 1 million tokens. A short answer of 1,000 tokens costs about one thousandth of the output price.")); pc.appendChild(ph);
+      var list = el("div", "plist");
+      function usd(n) { return "$" + (n < 1 ? n.toFixed(2) : n.toFixed(2)); }
+      ids.forEach(function (id) {
+        var r = el("div", "prow"), nm = el("b", "", id), pr = el("span", "pr"); pr.appendChild(el("i", "", "in " + usd(P[id].input))); pr.appendChild(el("i", "", "out " + usd(P[id].output)));
+        r.appendChild(nm); r.appendChild(pr); r.appendChild(el("em", "", "1,000 tokens ≈ $" + (P[id].output / 1000).toFixed(4))); list.appendChild(r);
+      });
+      pc.appendChild(list); pc.appendChild(el("p", "pnote", "OpenAI model prices are not set yet. Ask the owner."));
+      wrap.appendChild(pc);
+    }
+    // FAQ: only things we really know
+    var QA = [
+      ["How is my balance counted?", "Your key has a dollar limit. The My key page shows it as tokens counted at the cheapest model price, so a dearer model uses it up faster."],
+      ["What happens when it runs out or expires?", "The gateway stops answering that key. Ask the owner on Telegram for a new key. Nothing else is needed."],
+      ["Which tools can I use?", "Any tool that accepts an OpenAI-style Base URL and key. Use the same address and key everywhere. So far only OpenHands has been tested by us."],
+      ["Which API styles work?", "Chat (/v1/chat/completions) and Responses (/v1/responses) both answered on a real test with an OpenAI model. Other styles are not tested yet."],
+      ["Where do I see my balance?", "Open My key and paste your key, or use the box above on this page."]
+    ];
+    var fq = el("div", "sx sx-faq"), fh = el("div", "sxt"); fh.appendChild(el("h2", "", "Common questions")); fq.appendChild(fh);
+    QA.forEach(function (q) { var d = document.createElement("details"); d.className = "qa"; var s = document.createElement("summary"); s.textContent = q[0]; d.appendChild(s); d.appendChild(el("p", "", q[1])); fq.appendChild(d); });
+    wrap.appendChild(fq);
+    anchor.parentNode.insertBefore(wrap, anchor);
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools(); initDemo(); initEndpointCheck();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools(); initDemo(); initEndpointCheck(); initInfo();
 })();
