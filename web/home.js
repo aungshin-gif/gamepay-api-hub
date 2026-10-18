@@ -321,8 +321,53 @@
     document.addEventListener("visibilitychange", kick); $("nav").addEventListener("click", function () { setTimeout(kick, 80); }); kick();
   }
 
+
+  // ---------- "Endpoint check": a tiny real call to /v1/chat/completions and /v1/responses with the owner's own key ----------
+  // Purpose: find out from the tablet which endpoints this gateway really answers, before the Start page claims anything about them.
+  function initEndpointCheck() {
+    var panel = $("tab-key"); if (!panel) return;
+    var card = el("div", "card epcheck"), sel = el("select", "epsel"), out = el("div", "epout"), touched = false;
+    card.appendChild(el("h2", "", "Endpoint check"));
+    card.appendChild(el("p", "muted", "Sends one tiny question (about 20 tokens) to this gateway with your key, to see which API styles it answers. Nothing is saved."));
+    var row = el("div", "eprow"), lab = el("label", "sel"); lab.appendChild(el("span", "muted", "Model")); lab.appendChild(sel); row.appendChild(lab);
+    var b1 = el("button", "soft"), b2 = el("button", "primary"); b1.type = b2.type = "button"; b1.textContent = "Test Chat"; b2.textContent = "Test Responses"; row.appendChild(b1); row.appendChild(b2);
+    card.appendChild(row); card.appendChild(el("p", "hint", "Responses is an OpenAI-style API, so pick a gpt model for that test.")); card.appendChild(out); panel.appendChild(card);
+    function fill() { // text models that the checked key can use (the hidden chat model list already holds them)
+      var cm = $("chatModel"), want = touched ? sel.value : "", ids = cm ? [].map.call(cm.options, function (o) { return o.value; }) : []; if (!ids.length) return;
+      sel.textContent = ""; ids.forEach(function (id) { var o = document.createElement("option"); o.value = id; o.textContent = id; sel.appendChild(o); });
+      sel.value = ids.indexOf(want) >= 0 ? want : (ids.filter(function (m) { return /^gpt/i.test(m); })[0] || ids[0]);
+    }
+    sel.addEventListener("change", function () { touched = true; }); sel.addEventListener("focus", fill); sel.addEventListener("pointerdown", fill); document.addEventListener("click", function (e) { if (e.target.closest && e.target.closest("#checkBtn,#nav")) setTimeout(fill, 400); });
+    function show(name, ok, line, raw) {
+      var d = out.querySelector('[data-n="' + name + '"]'); if (!d) { d = el("div", "epres"); d.setAttribute("data-n", name); out.appendChild(d); }
+      d.className = "epres " + (ok === null ? "run" : ok ? "ok" : "bad"); d.textContent = ""; d.appendChild(el("b", "", (ok === null ? "… " : ok ? "✓ " : "✗ ") + name)); d.appendChild(el("span", "", " " + line));
+      if (raw) d.appendChild(el("pre", "epraw", raw));
+    }
+    function run(kind) {
+      var key = (($("keyInput") || {}).value || "").trim(), model = sel.value, name = kind === "chat" ? "Chat  /v1/chat/completions" : "Responses  /v1/responses";
+      if (!key) { show(name, false, "Add your key in the box above first."); return; }
+      if (!model) { fill(); model = sel.value; } if (!model) { show(name, false, "Tap Check on your key first, so the model list loads."); return; }
+      var body = kind === "chat" ? { model: model, messages: [{ role: "user", content: "Say hi in one word." }] } : { model: model, input: "Say hi in one word.", max_output_tokens: 16 };
+      if (kind === "chat") { if (/^deepseek/i.test(model)) body.max_tokens = 16; else body.max_completion_tokens = 16; }
+      var url = (cfg.GATEWAY_URL || "") + (kind === "chat" ? "/v1/chat/completions" : "/v1/responses"), t0 = performance.now(), ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 40000);
+      show(name, null, "asking " + model + "…");
+      fetch(url, { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl ? ctl.signal : undefined }).then(function (r) {
+        return r.text().then(function (t) {
+          var j = null, ms = Math.round(performance.now() - t0); try { j = JSON.parse(t); } catch (e) {}
+          var txt = j && (kind === "chat" ? (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) : (j.output_text || (j.output && j.output[0] && j.output[0].content && j.output[0].content[0] && j.output[0].content[0].text)));
+          var err = j && j.error && (j.error.message || j.error);
+          if (r.ok && txt) show(name, true, "HTTP " + r.status + " · " + ms + " ms · answer: “" + String(txt).slice(0, 60) + "”");
+          else if (r.ok) show(name, false, "HTTP " + r.status + " · " + ms + " ms · answered, but no text found", t.slice(0, 260));
+          else show(name, false, "HTTP " + r.status + " · " + ms + " ms · " + (err ? String(typeof err === "string" ? err : JSON.stringify(err)).slice(0, 160) : "no message"), t.slice(0, 260));
+        });
+      }).catch(function (e) { show(name, false, "no answer (" + (e && e.name === "AbortError" ? "timed out after 40 s" : "network or browser blocked it") + ")"); }).then(function () { clearTimeout(to); });
+    }
+    b1.addEventListener("click", function () { run("chat"); }); b2.addEventListener("click", function () { run("responses"); });
+    fill();
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools(); initDemo();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools(); initDemo(); initEndpointCheck();
 })();

@@ -678,3 +678,13 @@ svg.i3 { display: block; width: 100%; height: 100%; overflow: visible; }
 .dfoot { margin-top: 4px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .12); font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #8aa0ff; }
 @media (min-width: 820px) { .dpane { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: stretch; } }
 @media (prefers-reduced-motion: reduce) { .typed .live.caret::after { animation: none; } }
+
+
+/* ===== Endpoint check card (My key tab) ===== */
+.epcheck { gap: 10px; }
+.eprow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; } .eprow .sel { flex: 1 1 200px; min-width: 0; } .eprow .sel select { width: 100%; }
+.eprow button { height: 46px; padding: 0 18px; border-radius: 14px; font-weight: 700; }
+.epout { display: grid; gap: 8px; }
+.epres { padding: 10px 12px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; background: #f4f6ff; border: 1px solid #e3e9fb; } .epres b { font-weight: 800; white-space: pre-wrap; }
+.epres.ok { background: #effbf3; border-color: #bfe9cd; color: #14532d; } .epres.bad { background: #fff3f2; border-color: #f5c9c4; color: #7f1d1d; } .epres.run { color: var(--muted); }
+.epraw { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(15, 27, 54, .06); font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; color: #3b4a78; }
