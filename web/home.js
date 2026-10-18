@@ -191,8 +191,8 @@
     });
     tools.appendChild(tg);
     // middle: the gateway
-    var ICO = { key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16.5 6.5l3 3"/>', wallet: '<path d="M4 8V6a2 2 0 0 1 2-2h11v4"/><rect x="3" y="8" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="14" r="1.3"/>', pulse: '<path d="M3 12h4l2.5-6.5 4 13 2.5-6.5H21"/>', chat: '<path d="M4 5h16v11H10l-6 4z"/>' };
-    function ico(k) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO[k] + '</svg>'; }
+    var ICO = { key: "key", wallet: "coins", pulse: "pulse", chat: "chatpic" }; // 3D icons live in the sprite at the top of index.html
+    function ico(k) { return '<svg class="i3" viewBox="0 0 64 64" aria-hidden="true"><use href="#ic3-' + ICO[k] + '"/></svg>'; }
     var gw = el("div", "fgw"), top = el("div", "fgtop"), gl = el("span", "fglogo"), gim = document.createElement("img"); gim.src = "assets/logo-192.png"; gim.alt = ""; gl.appendChild(gim); top.appendChild(gl);
     var gt = el("span", "fgttl"); gt.appendChild(el("b", "", "GamePay")); gt.appendChild(el("span", "", "API gateway")); top.appendChild(gt);
     var live = el("span", "fglive"); live.appendChild(el("i", "fgdot")); live.appendChild(document.createTextNode("Live")); top.appendChild(live); gw.appendChild(top); gw.appendChild(el("i", "fgdiv"));

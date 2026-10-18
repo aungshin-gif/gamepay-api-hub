@@ -619,3 +619,13 @@ button.fm:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(77, 
 @media (prefers-reduced-motion: reduce) { .mtrack { animation: none; flex-wrap: wrap; width: auto; } .mrow2.r1 .mtrack { margin-left: 0; } .mtrack .chip2[aria-hidden="true"] { display: none; } .marq { -webkit-mask-image: none; mask-image: none; } }
 
 .sechead h2 { white-space: nowrap; flex: none; }
+
+/* ===== 3D-style icons (hand drawn in the sprite at the top of index.html) ===== */
+svg.i3 { display: block; width: 100%; height: 100%; overflow: visible; }
+.fi { width: 58px; height: 58px; border-radius: 0; background: none; box-shadow: none; margin: -4px 0 0 -3px; }
+.fi svg.i3 { filter: drop-shadow(0 7px 7px rgba(31, 41, 90, .2)); }
+.fgi { width: 38px; height: 38px; border-radius: 0; background: none !important; box-shadow: none; margin: -3px 0 -3px -2px; }
+.fgi svg.i3 { filter: drop-shadow(0 4px 4px rgba(31, 41, 90, .2)); }
+@media (min-width: 600px) and (max-width: 979px) { .fgi { width: 32px; height: 32px; } }
+
+.fgi svg.i3, .fi svg.i3 { stroke: none; }
