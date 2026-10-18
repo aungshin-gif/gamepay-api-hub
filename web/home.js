@@ -244,8 +244,30 @@
     var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { box.classList.add("in"); io.disconnect(); } }, { threshold: 0.25 }); io.observe(box);
   }
 
+
+  // ---------- "Works with": two rows of tool chips that drift in opposite directions ----------
+  function initTools() {
+    var box = $("marq"); if (!box) return;
+    var list = cfg.TOOL_STRIP || [], sheets = {};
+    [].slice.call(document.querySelectorAll("#platBoxes .plb")).forEach(function (b) { var n = b.querySelector(".plt b"); if (n) sheets[n.textContent] = b; });
+    function chip(it, hidden) {
+      var open = it.sheet && sheets[it.sheet], c = el(open ? "button" : "span", "chip2" + (it.tested ? " ok" : "") + (open ? " tap" : "")), lg = el("span", "c2l"), im = document.createElement("img");
+      im.src = it.logo; im.alt = ""; lg.appendChild(im); if (it.tested) lg.appendChild(el("i", "c2ok", "✓")); c.appendChild(lg); c.appendChild(el("b", "", it.name));
+      if (open) { c.type = "button"; c.addEventListener("click", function () { sheets[it.sheet].click(); }); }
+      if (hidden) { c.setAttribute("aria-hidden", "true"); c.tabIndex = -1; }
+      return c;
+    }
+    [list.filter(function (_, i) { return i % 2 === 0; }), list.filter(function (_, i) { return i % 2 === 1; })].forEach(function (items, ri) {
+      var row = el("div", "mrow2 r" + ri), track = el("div", "mtrack");
+      for (var rep = 0; rep < 4; rep++) items.forEach(function (it) { track.appendChild(chip(it, rep > 0)); }); // 4 copies; the track slides by one copy, so the loop has no gap
+      row.appendChild(track); box.appendChild(row);
+    });
+    if (reduce || !("IntersectionObserver" in window)) return;
+    new IntersectionObserver(function (es) { box.classList.toggle("live", es[0].isIntersecting); }).observe(box); // only moves while on screen
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet(); initFlow();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools();
 })();
