@@ -184,12 +184,15 @@
     var tools = grp("ftools", "Your tools"), tg = el("div", "ftiles");
     plats.forEach(function (b, i) {
       var t = el("button", "ft t" + (i % 6)), ic = el("span", "fti"), sv = b.querySelector(".pli svg"), nm = b.querySelector(".plt b");
-      t.type = "button"; if (sv) ic.innerHTML = sv.outerHTML; t.appendChild(ic); t.appendChild(el("b", "", nm ? nm.textContent.replace("Your own app", "Your app") : "")); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
+      var LG = { "VS Code": "assets/tool-vscode.svg", "Terminal": "assets/tool-terminal.svg", "Python": "assets/tool-python.svg", "OpenHands": "assets/tool-openhands.svg" }, nmt = nm ? nm.textContent : "";
+      t.type = "button";
+      if (LG[nmt]) { var li = document.createElement("img"); li.src = LG[nmt]; li.alt = ""; ic.classList.add("logo"); ic.appendChild(li); } else if (sv) ic.innerHTML = sv.outerHTML; // real logo where we have one, plain glyph otherwise
+      t.appendChild(ic); t.appendChild(el("b", "", nmt.replace("Your own app", "Your app"))); t.addEventListener("click", function () { b.click(); }); tg.appendChild(t);
     });
     tools.appendChild(tg);
     // middle: the gateway
-    var ICO = { key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16.5 6.5l3 3"/>', wallet: '<path d="M4 8V6a2 2 0 0 1 2-2h11v4"/><rect x="3" y="8" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="14" r="1.3"/>', pulse: '<path d="M3 12h4l2.5-6.5 4 13 2.5-6.5H21"/>', chat: '<path d="M4 5h16v11H10l-6 4z"/>' };
-    function ico(k) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICO[k] + '</svg>'; }
+    var ICO = { key: "key", wallet: "coins", pulse: "pulse", chat: "chatpic" }; // 3D icons live in the sprite at the top of index.html
+    function ico(k) { return '<svg class="i3" viewBox="0 0 64 64" aria-hidden="true"><use href="#ic3-' + ICO[k] + '"/></svg>'; }
     var gw = el("div", "fgw"), top = el("div", "fgtop"), gl = el("span", "fglogo"), gim = document.createElement("img"); gim.src = "assets/logo-192.png"; gim.alt = ""; gl.appendChild(gim); top.appendChild(gl);
     var gt = el("span", "fgttl"); gt.appendChild(el("b", "", "GamePay")); gt.appendChild(el("span", "", "API gateway")); top.appendChild(gt);
     var live = el("span", "fglive"); live.appendChild(el("i", "fgdot")); live.appendChild(document.createTextNode("Live")); top.appendChild(live); gw.appendChild(top); gw.appendChild(el("i", "fgdiv"));
@@ -241,8 +244,30 @@
     var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { box.classList.add("in"); io.disconnect(); } }, { threshold: 0.25 }); io.observe(box);
   }
 
+
+  // ---------- "Works with": two rows of tool chips that drift in opposite directions ----------
+  function initTools() {
+    var box = $("marq"); if (!box) return;
+    var list = cfg.TOOL_STRIP || [], sheets = {};
+    [].slice.call(document.querySelectorAll("#platBoxes .plb")).forEach(function (b) { var n = b.querySelector(".plt b"); if (n) sheets[n.textContent] = b; });
+    function chip(it, hidden) {
+      var open = it.sheet && sheets[it.sheet], c = el(open ? "button" : "span", "chip2" + (it.tested ? " ok" : "") + (open ? " tap" : "")), lg = el("span", "c2l"), im = document.createElement("img");
+      im.src = it.logo; im.alt = ""; lg.appendChild(im); if (it.tested) lg.appendChild(el("i", "c2ok", "✓")); c.appendChild(lg); c.appendChild(el("b", "", it.name));
+      if (open) { c.type = "button"; c.addEventListener("click", function () { sheets[it.sheet].click(); }); }
+      if (hidden) { c.setAttribute("aria-hidden", "true"); c.tabIndex = -1; }
+      return c;
+    }
+    [list.filter(function (_, i) { return i % 2 === 0; }), list.filter(function (_, i) { return i % 2 === 1; })].forEach(function (items, ri) {
+      var row = el("div", "mrow2 r" + ri), track = el("div", "mtrack");
+      for (var rep = 0; rep < 4; rep++) items.forEach(function (it) { track.appendChild(chip(it, rep > 0)); }); // 4 copies; the track slides by one copy, so the loop has no gap
+      row.appendChild(track); box.appendChild(row);
+    });
+    if (reduce || !("IntersectionObserver" in window)) return;
+    new IntersectionObserver(function (es) { box.classList.toggle("live", es[0].isIntersecting); }).observe(box); // only moves while on screen
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet(); initFlow();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools();
 })();

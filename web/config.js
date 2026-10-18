@@ -53,5 +53,15 @@ window.GPH_CONFIG = {
   // "How it works" diagram: providers shown dimmed with a "Soon" tag because no channel serves them yet.
   // When a channel exists, delete the entry here and list its models in START_MODELS (and add its logo to the diagram code).
   MODEL_SOON: [{ name: "xAI", logo: "assets/net-xai.png" }, { name: "Qwen", logo: "assets/net-qwen.png" }],
+  // Start page "Works with" strip. tested: true ONLY for tools the owner really tried with this gateway (today: OpenHands).
+  // Everything else is shown as "standard OpenAI-style settings, not tested here yet". Do not list Claude Code (it needs the Anthropic format and Claude models).
+  TOOL_STRIP: [
+    { name: "VS Code", logo: "assets/tool-vscode.svg", sheet: "VS Code" }, { name: "Terminal", logo: "assets/tool-terminal.svg", sheet: "Terminal" },
+    { name: "Python", logo: "assets/tool-python.svg", sheet: "Python" }, { name: "OpenHands", logo: "assets/tool-openhands.svg", sheet: "OpenHands", tested: true },
+    { name: "Cursor", logo: "assets/tool-cursor.svg" }, { name: "Cline", logo: "assets/tool-cline.svg" }, { name: "Kilo Code", logo: "assets/tool-kilocode.svg" },
+    { name: "Roo Code", logo: "assets/tool-roocode.svg" }, { name: "Cherry Studio", logo: "assets/tool-cherrystudio.svg" }, { name: "LobeHub", logo: "assets/tool-lobehub.svg" },
+    { name: "Open WebUI", logo: "assets/tool-openwebui.svg" }, { name: "Dify", logo: "assets/tool-dify.svg" }, { name: "n8n", logo: "assets/tool-n8n.svg" },
+    { name: "Goose", logo: "assets/tool-goose.svg" }, { name: "OpenCode", logo: "assets/tool-opencode.svg" }
+  ],
   LIVE_EVERY_MS: 60000
 };

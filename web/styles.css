@@ -591,3 +591,41 @@ button.fm:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(77, 
   .fgw { padding: 14px 10px 10px; gap: 8px; } .fglogo { width: 36px; height: 36px; border-radius: 11px; } .fgttl b { font-size: 15px; } .fgttl span { font-size: 10.5px; }
   .fglive { font-size: 0; gap: 0; padding: 6px; } .fgr { padding: 6px 8px; font-size: 12.5px; gap: 8px; } .fgi { width: 26px; height: 26px; border-radius: 9px; } .fgi svg { width: 14px; height: 14px; }
 }
+
+/* the big glass panel is gone: the neuron sits straight on the hero (owner did not like the framed screen) */
+.net { border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; }
+.netglass { display: none; }
+
+/* tool tiles that show a real logo: white tile, logo inside */
+.fti.logo { background: #fff !important; border: 1px solid #e3e9fb; box-shadow: 0 6px 14px rgba(77, 107, 254, .14); }
+.fti.logo img { width: 66%; height: 66%; object-fit: contain; display: block; }
+
+
+/* ===== Works with: drifting tool chips (our own style) ===== */
+.marq { display: grid; gap: 12px; padding: 6px 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.mrow2 { overflow: hidden; }
+.mtrack { display: flex; gap: 12px; width: max-content; will-change: transform; animation: drift 70s linear infinite; }
+.mrow2.r1 .mtrack { animation-direction: reverse; animation-duration: 82s; margin-left: -90px; }
+@keyframes drift { to { transform: translateX(-25%); } }
+.marq:not(.live) .mtrack, .marq:hover .mtrack { animation-play-state: paused; }
+.chip2 { display: inline-flex; align-items: center; gap: 10px; flex: none; padding: 7px 18px 7px 7px; border-radius: 18px; background: #fff; border: 1px solid #e3e9fb; color: var(--ink) !important; font: inherit; box-shadow: 0 1px 0 #fff inset, 0 6px 16px rgba(77, 107, 254, .09); }
+.chip2 b { font-size: 14.5px; white-space: nowrap; }
+.chip2.tap { cursor: pointer; } .chip2.tap:hover { box-shadow: 0 10px 22px rgba(77, 107, 254, .2); border-color: #cfdcff; }
+.c2l { position: relative; width: 38px; height: 38px; border-radius: 12px; flex: none; display: grid; place-items: center; background: linear-gradient(180deg, #fff, #f2f5ff); border: 1px solid #e6ebfb; }
+.c2l img { width: 22px; height: 22px; object-fit: contain; display: block; }
+.chip2.ok { border-color: #86efac; box-shadow: 0 1px 0 #fff inset, 0 6px 16px rgba(34, 197, 94, .14); }
+.c2ok { position: absolute; right: -5px; top: -5px; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font: 800 10px/1 inherit; font-style: normal; color: #fff; background: #22c55e; border: 2px solid #fff; }
+.marqnote { text-align: center; margin-top: -4px; } .okdot { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: #22c55e; color: #fff; font-size: 9.5px; font-weight: 800; vertical-align: 1px; }
+@media (prefers-reduced-motion: reduce) { .mtrack { animation: none; flex-wrap: wrap; width: auto; } .mrow2.r1 .mtrack { margin-left: 0; } .mtrack .chip2[aria-hidden="true"] { display: none; } .marq { -webkit-mask-image: none; mask-image: none; } }
+
+.sechead h2 { white-space: nowrap; flex: none; }
+
+/* ===== 3D-style icons (hand drawn in the sprite at the top of index.html) ===== */
+svg.i3 { display: block; width: 100%; height: 100%; overflow: visible; }
+.fi { width: 58px; height: 58px; border-radius: 0; background: none; box-shadow: none; margin: -4px 0 0 -3px; }
+.fi svg.i3 { filter: drop-shadow(0 7px 7px rgba(31, 41, 90, .2)); }
+.fgi { width: 38px; height: 38px; border-radius: 0; background: none !important; box-shadow: none; margin: -3px 0 -3px -2px; }
+.fgi svg.i3 { filter: drop-shadow(0 4px 4px rgba(31, 41, 90, .2)); }
+@media (min-width: 600px) and (max-width: 979px) { .fgi { width: 32px; height: 32px; } }
+
+.fgi svg.i3, .fi svg.i3 { stroke: none; }
