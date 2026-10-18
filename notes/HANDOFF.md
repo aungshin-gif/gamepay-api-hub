@@ -409,3 +409,9 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 ## Update 2026-10-18 (Responses tab)
 - Owner ran the Endpoint check with `gpt-5.6-sol`: **/v1/chat/completions HTTP 200 and /v1/responses HTTP 200** on the real gateway (screenshot from the owner). So Responses is verified for OpenAI models.
 - "Try it like this" now has a **Responses API** tab (ChatGPT-like UI, `/v1/responses` curl + `output_text` response shape, "tested on this gateway" in the footer). Still not verified: `/v1/messages` (Claude style), images endpoint, per-model OpenAI prices.
+
+## Update 2026-10-18 (Start page: key check, prices, FAQ in Store look)
+- New block `initInfo()` in `web/home.js` (inserted before the "3 steps" card): quick key box (copies the key into `#keyInput`, opens My key, clicks Check, so there is one code path), a Prices card (only models in `cfg.PRICES`; OpenAI shows "not set yet"), and a FAQ (`<details>`). CSS block at the end of `styles.css`, lavender `#f6f3fd` / border `#e3d9f6` / violet `#6231c8` like the Store.
+- FAQ only states what is verified (balance counted at flash price, only OpenHands tested, chat + responses tested with an OpenAI model).
+- Deliberately NOT added: "prompts are not stored" (depends on gateway log settings, unverified) and keep-alive/heartbeat claims.
+- Next: when OpenAI prices are set in the gateway, add them to `PRICES` in `web/config.js`; the Prices card picks them up.
