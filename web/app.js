@@ -196,15 +196,19 @@
     var t = state.lastAt;
     $("liveInfo").textContent = (modelIds().length) + " model" + (modelIds().length === 1 ? "" : "s") + " available · updated " + two(t.getHours()) + ":" + two(t.getMinutes()) + ":" + two(t.getSeconds()) + " · re-checks about every " + Math.round(cfg.LIVE_EVERY_MS / 1000) + "s";
   }
+  // Before a key is checked: every model the gateway offers (from config), read-only. After Check: the models this key can use.
+  function catalogIds() { var o = [], S = cfg.START_MODELS || {}; Object.keys(S).forEach(function (k) { S[k].forEach(function (x) { o.push(x.id); }); }); return o; }
   function renderModels() {
-    var box = $("modelList"), ids = modelIds(); box.textContent = ""; updatePowered();
+    var box = $("modelList"), real = modelIds(), cat = !real.length, ids = cat ? catalogIds() : real; box.textContent = ""; updatePowered();
     $("modelHint").hidden = !ids.length;
     if (!ids.length) { box.className = "list"; return; }
     box.className = "mgrid";
+    if (cat) { $("modelHint").textContent = "These are the models this gateway offers. Your key may allow only some of them: paste your key above and tap Check to see yours and to test them."; }
+    else { $("modelHint").textContent = 'Prices are USD per 1M tokens. "Test" sends a tiny message (a few tokens) to measure real speed. Token counts are from your Chat during this visit.'; }
     ids.forEach(function (m) {
       var p = cfg.PRICES[m], info = (cfg.MODEL_INFO || {})[m] || {}, st = mstat(m), prov = providerOf(m);
       var d = el("div", "mbox a-" + (info.accent || prov.accent));
-      var head = el("div", "mhead"), lg = el("span", "mlogo"); lg.appendChild(logoFor(m, 22)); head.appendChild(lg); head.appendChild(pchip(m)); d.appendChild(head);
+      var head = el("div", "mhead"), lg = el("span", "mlogo"); lg.appendChild(logoFor(m, 22)); head.appendChild(lg); if (cat) { var nc = el("span", "pchip idle"); nc.appendChild(el("i", "dot")); nc.appendChild(document.createTextNode("not checked")); head.appendChild(nc); } else head.appendChild(pchip(m)); d.appendChild(head);
       var nm = el("div", "mname", m); nm.title = m; d.appendChild(nm);
       d.appendChild(el("div", "mtag", info.tag || (prov.name + (p ? "" : " · price not set"))));
       var io = el("div", "io");
@@ -212,6 +216,7 @@
         var b = el("div"); b.appendChild(el("span", "iol", r[0])); b.appendChild(el("b", "iov", r[1])); io.appendChild(b);
       }); d.appendChild(io);
       var kind = kindOf(m);
+      if (cat) { d.appendChild(el("div", "mused", kind === "image" ? "Picture model" : kind === "text" ? "Text model" : "Video model: not available in this dashboard.")); box.appendChild(d); return; }
       if (kind === "text") d.appendChild(el("div", "mused", fmt(st.in) + " in · " + fmt(st.out) + " out tokens"));
       if (kind !== "text") { d.appendChild(el("div", "mused", kind === "image" ? "Use it in Chat, Picture tab." : "Video model: not available in this dashboard.")); box.appendChild(d); return; }
       var foot = el("div", "mfoot"), btn = el("button", "small"), res = el("span", "ms");
@@ -493,7 +498,7 @@
       // Ask for the model list first so everything is drawn once and the numbers can animate.
       return fetchModels(key).then(function (m) { applyModels(m); renderKey(d); renderModels(); fillChatModels(); startLive(); });
     }).catch(function (err) {
-      state.data = null; state.models = []; updatePowered(); $("emptyState").hidden = false; $("keyData").hidden = true; $("modelList").textContent = ""; $("modelHint").hidden = true;
+      state.data = null; state.models = []; updatePowered(); $("emptyState").hidden = false; $("keyData").hidden = true; renderModels();
       fail(err.message === "BAD_KEY" ? "The gateway says this key is not valid. Check it and try again."
         : err.message === "NOT_CONFIGURED" ? "The gateway did not return info for this key. (Owner: open this page with ?debug=1.)"
         : "Could not check this key. Try again.");
@@ -527,7 +532,7 @@
     keyBox.value = ""; state.key = ""; state.data = null; state.models = []; state.ms = {}; state.prev = {};
     if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
     updatePowered(); fillChatModels();
-    $("emptyState").hidden = false; $("keyData").hidden = true; $("modelList").textContent = ""; $("modelHint").hidden = true; $("error").hidden = true;
+    $("emptyState").hidden = false; $("keyData").hidden = true; renderModels(); $("error").hidden = true;
     keyBox.focus();
   });
   document.addEventListener("click", function (e) {
@@ -714,6 +719,6 @@
   $("startBtn").addEventListener("click", function () { showTab("key"); $("keyInput").focus(); });
   if (cfg.SUPPORT_TELEGRAM) { var tgb = $("tgBtn"); tgb.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; tgb.hidden = false; }
 
-  loadHist(); renderStrip();
+  loadHist(); renderStrip(); renderModels();
   document.body.setAttribute("data-tab", "start"); loadChat(); fillChatModels(); paintIcons(); watchSteps();
 })();

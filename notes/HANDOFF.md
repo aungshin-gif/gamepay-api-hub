@@ -415,3 +415,7 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - FAQ only states what is verified (balance counted at flash price, only OpenHands tested, chat + responses tested with an OpenAI model).
 - Deliberately NOT added: "prompts are not stored" (depends on gateway log settings, unverified) and keep-alive/heartbeat claims.
 - Next: when OpenAI prices are set in the gateway, add them to `PRICES` in `web/config.js`; the Prices card picks them up.
+
+## Update 2026-10-18 (Models tab shows all models before a key check)
+- Owner screenshot: Models tab was empty until a key was checked. Now `renderModels()` in `web/app.js` shows the whole catalogue (`cfg.START_MODELS`, read-only, "not checked", no Test button) when no key is checked; after Check it shows the key's own models with Test as before.
+- Note: `/v1/models` needs a key, so the catalogue comes from config. Keep `START_MODELS` in sync with the gateway channels.
