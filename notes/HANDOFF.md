@@ -393,3 +393,15 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 
 - The icons for Chat and pictures, Live status, Know what is left (token balance), Works with your tools and the One key row are now **hand-drawn 3D-style SVGs** (gradients, gloss, soft shadow): a sprite of `<symbol id="ic3-...">` (chat, picture, chatpic, pulse, coins, key, code) at the top of `web/index.html`, used with `<svg class="i3"><use href="#ic3-NAME"/></svg>`. The gateway box rows use the same symbols (`ICO` map in `initFlow()`). To add one, add a `<symbol>` to the sprite (viewBox 0 0 64 64; reuse the `i3-*` gradients; keep one soft ellipse shadow at y=58).
 - Gotcha: CSS `stroke` set on a parent leaks into `<use>` content and draws white outlines; `svg.i3 { stroke: none }` stops it.
+
+## Update 2026-10-18 (Try it like this: chat examples per model family)
+
+- New Start section **"Try it like this"** (`initDemo()` in `web/home.js`, styles at the end of `web/styles.css`): two tabs, **OpenAI models** (white ChatGPT-like chat window, gray bubble, black send button) and **DeepSeek models** (soft blue, "Thought for a few seconds" pill, DeepThink chip, blue send button). Each tab shows the same question typed out, plus the matching `curl` (real Base URL from `GATEWAY_URL`, key shown as `YOUR_KEY`, Copy button) and a shortened `/v1/chat/completions` response. The answer is typed character by character only while the section is on screen (a hidden "ghost" copy keeps the height fixed, so nothing jumps).
+- **What is real and what is not**: the answers and token counts are made up examples (the page says so under the block). The cost line is computed from `PRICES` in `web/config.js` (DeepSeek: 88 tokens x $1.2/M = $0.0001056); for OpenAI models it says "price: not set yet" until the owner sets prices. Only `/v1/chat/completions` is shown, because it is the one endpoint confirmed with the real gateway.
+- **Deliberately not added**: a Responses tab, a Messages (Claude) tab and a Gemini tab (the ORYNX page has them). This gateway has no Claude or Gemini models, and `/v1/responses` and `/v1/messages` were never tested here. If a Claude channel is added and `/v1/messages` is tested, add a third tab with a warm, Claude-like look (the tab list is the `TABS` array).
+
+## Update 2026-10-18 (Endpoint check card)
+- "My key" tab now has an **Endpoint check** card (`initEndpointCheck()` in `web/home.js`). With the member's own key it sends a tiny request (max 16 tokens) to `/v1/chat/completions` ("Test Chat") or `/v1/responses` ("Test Responses") and shows OK/fail, HTTP status, latency and the raw body on failure. The key is never displayed.
+- Default model = first `gpt*` model (Responses is an OpenAI-style API); the owner's own pick is kept once changed.
+- Verified only with stubbed routes in the sandbox (chat 200, responses 404 shape). **Real gateway result not known yet.**
+- Next: owner runs both tests and sends a screenshot. If Responses works, add a "Responses" tab to `TABS` in `initDemo()` (OpenAI models, ChatGPT-like UI, marked tested). If not, leave it out.

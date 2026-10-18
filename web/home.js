@@ -266,8 +266,108 @@
     new IntersectionObserver(function (es) { box.classList.toggle("live", es[0].isIntersecting); }).observe(box); // only moves while on screen
   }
 
+
+  // ---------- "Try it like this": one chat request per model family, each shown in a UI that looks like that family's chat ----------
+  function initDemo() {
+    var box = $("demo"); if (!box) return;
+    var Q = "What does an API gateway do?", A = "It gives your tools one front door: one key and one address. The gateway then sends each request to the right model and counts the tokens you use.";
+    var TABS = [
+      { id: "openai", label: "OpenAI models", logo: "assets/net-openai.png", model: "gpt-4.1-mini", pt: 14, ct: 36 },
+      { id: "deepseek", label: "DeepSeek models", logo: "assets/net-deepseek.png", model: "deepseek-flash", pt: 14, ct: 74, think: true }
+    ];
+    var cur = 0, n = 0, hold = 0, timer = null, visible = true, panes = [];
+    function curl(m) { return 'curl ' + (cfg.GATEWAY_URL || "") + '/v1/chat/completions \\\n  -H "Authorization: Bearer YOUR_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"model": "' + m + '", "messages": [{"role": "user", "content": "' + Q + '"}]}\''; }
+    function costText(t) { var p = (cfg.PRICES || {})[t.model]; if (!p) return "price: not set yet"; var c = (t.pt * p.input + t.ct * p.output) / 1e6; return "≈ $" + c.toFixed(7).replace(/0+$/, ""); }
+    function jsonText(t, txt) { return '{\n  "model": "' + t.model + '",\n  "choices": [{ "message": { "role": "assistant", "content": "' + txt + '" } }],\n  "usage": { "prompt_tokens": ' + t.pt + ', "completion_tokens": ' + t.ct + ' }\n}'; }
+    function typed(cls) { var w = el("span", "typed " + (cls || "")), g = el("span", "ghost", A), l = el("span", "live"); w.appendChild(g); w.appendChild(l); return { w: w, l: l }; }
+    function img(src, h2) { var i = document.createElement("img"); i.src = src; i.alt = ""; i.height = h2; return i; }
+
+    var tabs = el("div", "dtabs"), grid = el("div", "dgrid");
+    TABS.forEach(function (t, i) {
+      var b = el("button", "dtab" + (i === 0 ? " on" : "")); b.type = "button"; b.appendChild(img(t.logo, 20)); b.appendChild(el("span", "", t.label)); tabs.appendChild(b);
+      b.addEventListener("click", function () { cur = i; n = 0; hold = 0; [].forEach.call(tabs.children, function (x, k) { x.classList.toggle("on", k === i); }); panes.forEach(function (p, k) { p.root.hidden = k !== i; }); paint(); kick(); });
+      // left: the chat window in this family's look
+      var chat = el("div", "dchat dc-" + t.id), head = el("div", "dch"), msgs = el("div", "dcm"), comp = el("div", "dcc"), ans = typed();
+      if (t.id === "openai") { head.appendChild(el("b", "", t.model)); head.appendChild(el("span", "dcaret", "⌄")); }
+      else { var lg = el("span", "dclogo"); lg.appendChild(img(t.logo, 20)); head.appendChild(lg); head.appendChild(el("b", "", t.model)); head.appendChild(el("span", "dchip", "DeepThink")); }
+      msgs.appendChild(el("div", "dcu", Q));
+      var row = el("div", "dca"), av = el("span", "dcav"); av.appendChild(img(t.logo, t.id === "openai" ? 18 : 20)); row.appendChild(av);
+      var body = el("div", "dcab"); if (t.think) body.appendChild(el("span", "dcthink", "Thought for a few seconds ›")); body.appendChild(ans.w); row.appendChild(body); msgs.appendChild(row);
+      if (t.id === "openai") { comp.appendChild(el("span", "dcplus", "+")); comp.appendChild(el("span", "dcph", "Ask anything")); comp.appendChild(el("span", "dcsend", "↑")); }
+      else { comp.appendChild(el("span", "dcph", "Message " + t.model)); comp.appendChild(el("span", "dchip on", "DeepThink")); comp.appendChild(el("span", "dcsend", "↑")); }
+      chat.appendChild(head); chat.appendChild(msgs); chat.appendChild(comp);
+      // right: the request and the (shortened) response
+      var code = el("div", "dcode"), bar = el("div", "dcb"), cb = el("button", "small"); cb.type = "button"; cb.textContent = "Copy"; cb.setAttribute("data-copytext", curl(t.model));
+      bar.appendChild(el("span", "dcl", "Request")); bar.appendChild(cb); code.appendChild(bar);
+      var pre = el("pre", "dpre"); pre.textContent = curl(t.model); code.appendChild(pre);
+      code.appendChild(el("div", "dcl dres", "Response (shortened)"));
+      var rw = el("div", "rwrap"), gh = el("pre", "dpre ghost2"), rp = el("pre", "dpre live2"); gh.textContent = jsonText(t, A); rw.appendChild(gh); rw.appendChild(rp); code.appendChild(rw); // the ghost holds the full text so the block never changes height
+      code.appendChild(el("div", "dfoot", (t.pt + t.ct) + " tokens  ·  " + costText(t) + (t.think ? "  ·  thinking tokens count as output" : "")));
+      var pane = el("div", "dpane"); pane.hidden = i !== 0; pane.appendChild(chat); pane.appendChild(code); grid.appendChild(pane);
+      panes.push({ root: pane, t: t, a: ans.l, r: rp });
+    });
+    box.appendChild(tabs); box.appendChild(grid);
+
+    function paint() { var txt = A.slice(0, n), p = panes[cur]; p.a.textContent = txt; p.r.textContent = jsonText(p.t, txt); p.a.classList.toggle("caret", n < A.length); p.r.classList.toggle("caret", n < A.length); }
+    function tick() {
+      if (!visible || document.hidden || !onStart()) { stop(); return; }
+      if (n < A.length) { n = Math.min(A.length, n + 2); hold = 0; paint(); } else if (++hold > 70) { n = 0; hold = 0; paint(); } // about 3 s pause, then type again
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function kick() { if (reduce) { n = A.length; paint(); return; } if (!timer && visible && !document.hidden && onStart()) timer = setInterval(tick, 45); }
+    if (reduce) { n = A.length; panes.forEach(function (p) { p.a.textContent = A; p.r.textContent = jsonText(p.t, A); }); return; }
+    n = 0; paint();
+    if ("IntersectionObserver" in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) kick(); else stop(); }, { threshold: 0.2 }).observe(box);
+    document.addEventListener("visibilitychange", kick); $("nav").addEventListener("click", function () { setTimeout(kick, 80); }); kick();
+  }
+
+
+  // ---------- "Endpoint check": a tiny real call to /v1/chat/completions and /v1/responses with the owner's own key ----------
+  // Purpose: find out from the tablet which endpoints this gateway really answers, before the Start page claims anything about them.
+  function initEndpointCheck() {
+    var panel = $("tab-key"); if (!panel) return;
+    var card = el("div", "card epcheck"), sel = el("select", "epsel"), out = el("div", "epout"), touched = false;
+    card.appendChild(el("h2", "", "Endpoint check"));
+    card.appendChild(el("p", "muted", "Sends one tiny question (about 20 tokens) to this gateway with your key, to see which API styles it answers. Nothing is saved."));
+    var row = el("div", "eprow"), lab = el("label", "sel"); lab.appendChild(el("span", "muted", "Model")); lab.appendChild(sel); row.appendChild(lab);
+    var b1 = el("button", "soft"), b2 = el("button", "primary"); b1.type = b2.type = "button"; b1.textContent = "Test Chat"; b2.textContent = "Test Responses"; row.appendChild(b1); row.appendChild(b2);
+    card.appendChild(row); card.appendChild(el("p", "hint", "Responses is an OpenAI-style API, so pick a gpt model for that test.")); card.appendChild(out); panel.appendChild(card);
+    function fill() { // text models that the checked key can use (the hidden chat model list already holds them)
+      var cm = $("chatModel"), want = touched ? sel.value : "", ids = cm ? [].map.call(cm.options, function (o) { return o.value; }) : []; if (!ids.length) return;
+      sel.textContent = ""; ids.forEach(function (id) { var o = document.createElement("option"); o.value = id; o.textContent = id; sel.appendChild(o); });
+      sel.value = ids.indexOf(want) >= 0 ? want : (ids.filter(function (m) { return /^gpt/i.test(m); })[0] || ids[0]);
+    }
+    sel.addEventListener("change", function () { touched = true; }); sel.addEventListener("focus", fill); sel.addEventListener("pointerdown", fill); document.addEventListener("click", function (e) { if (e.target.closest && e.target.closest("#checkBtn,#nav")) setTimeout(fill, 400); });
+    function show(name, ok, line, raw) {
+      var d = out.querySelector('[data-n="' + name + '"]'); if (!d) { d = el("div", "epres"); d.setAttribute("data-n", name); out.appendChild(d); }
+      d.className = "epres " + (ok === null ? "run" : ok ? "ok" : "bad"); d.textContent = ""; d.appendChild(el("b", "", (ok === null ? "… " : ok ? "✓ " : "✗ ") + name)); d.appendChild(el("span", "", " " + line));
+      if (raw) d.appendChild(el("pre", "epraw", raw));
+    }
+    function run(kind) {
+      var key = (($("keyInput") || {}).value || "").trim(), model = sel.value, name = kind === "chat" ? "Chat  /v1/chat/completions" : "Responses  /v1/responses";
+      if (!key) { show(name, false, "Add your key in the box above first."); return; }
+      if (!model) { fill(); model = sel.value; } if (!model) { show(name, false, "Tap Check on your key first, so the model list loads."); return; }
+      var body = kind === "chat" ? { model: model, messages: [{ role: "user", content: "Say hi in one word." }] } : { model: model, input: "Say hi in one word.", max_output_tokens: 16 };
+      if (kind === "chat") { if (/^deepseek/i.test(model)) body.max_tokens = 16; else body.max_completion_tokens = 16; }
+      var url = (cfg.GATEWAY_URL || "") + (kind === "chat" ? "/v1/chat/completions" : "/v1/responses"), t0 = performance.now(), ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 40000);
+      show(name, null, "asking " + model + "…");
+      fetch(url, { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl ? ctl.signal : undefined }).then(function (r) {
+        return r.text().then(function (t) {
+          var j = null, ms = Math.round(performance.now() - t0); try { j = JSON.parse(t); } catch (e) {}
+          var txt = j && (kind === "chat" ? (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) : (j.output_text || (j.output && j.output[0] && j.output[0].content && j.output[0].content[0] && j.output[0].content[0].text)));
+          var err = j && j.error && (j.error.message || j.error);
+          if (r.ok && txt) show(name, true, "HTTP " + r.status + " · " + ms + " ms · answer: “" + String(txt).slice(0, 60) + "”");
+          else if (r.ok) show(name, false, "HTTP " + r.status + " · " + ms + " ms · answered, but no text found", t.slice(0, 260));
+          else show(name, false, "HTTP " + r.status + " · " + ms + " ms · " + (err ? String(typeof err === "string" ? err : JSON.stringify(err)).slice(0, 160) : "no message"), t.slice(0, 260));
+        });
+      }).catch(function (e) { show(name, false, "no answer (" + (e && e.name === "AbortError" ? "timed out after 40 s" : "network or browser blocked it") + ")"); }).then(function () { clearTimeout(to); });
+    }
+    b1.addEventListener("click", function () { run("chat"); }); b2.addEventListener("click", function () { run("responses"); });
+    fill();
+  }
+
   // ---------- top bar button (Telegram), same contact as the Start page button ----------
   function initCta() { var a = $("navCta"); if (a && cfg.SUPPORT_TELEGRAM) { a.href = "https://t.me/" + cfg.SUPPORT_TELEGRAM; a.hidden = false; } }
 
-  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools();
+  initCta(); initFeatured(); initStats(); initNet(); initFlow(); initTools(); initDemo(); initEndpointCheck();
 })();

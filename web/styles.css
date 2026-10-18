@@ -629,3 +629,62 @@ svg.i3 { display: block; width: 100%; height: 100%; overflow: visible; }
 @media (min-width: 600px) and (max-width: 979px) { .fgi { width: 32px; height: 32px; } }
 
 .fgi svg.i3, .fi svg.i3 { stroke: none; }
+
+
+/* ===== Try it like this: a chat window per model family + the request/response ===== */
+.demo { display: grid; gap: 12px; }
+.dtabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.dtab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px 8px 10px; border-radius: 999px; background: #fff; border: 1px solid #e3e9fb; color: #3b4a78 !important; font-weight: 700; font-size: 14px; box-shadow: 0 4px 10px rgba(77, 107, 254, .07); }
+.dtab img { width: 20px; height: 20px; border-radius: 6px; object-fit: contain; }
+.dtab.on { background: #fff; border-color: #4d6bfe; color: #2a3a8e !important; box-shadow: 0 0 0 3px rgba(77, 107, 254, .14), 0 8px 18px rgba(77, 107, 254, .16); }
+.dpane { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.dpane[hidden] { display: none; }
+.dchat, .dcode { border-radius: 22px; overflow: hidden; min-width: 0; }
+.dchat { display: grid; grid-template-rows: auto 1fr auto; border: 1px solid #e5e7eb; background: #fff; box-shadow: 0 12px 30px rgba(31, 41, 90, .09); min-height: 300px; }
+.dch { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #f0f1f4; font-size: 15px; }
+.dcm { display: grid; align-content: start; gap: 14px; padding: 16px; }
+.dcu { justify-self: end; max-width: 86%; padding: 10px 15px; border-radius: 20px; font-size: 14.5px; }
+.dca { display: flex; gap: 10px; align-items: flex-start; } .dcab { min-width: 0; font-size: 14.5px; line-height: 1.55; display: grid; gap: 8px; }
+.dcav { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; }
+.typed { position: relative; display: inline-block; } .typed .ghost { visibility: hidden; } .typed .live { position: absolute; left: 0; top: 0; right: 0; }
+.typed .live.caret::after { content: ""; display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: -2px; background: currentColor; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.dcc { display: flex; align-items: center; gap: 10px; margin: 0 14px 14px; padding: 8px 8px 8px 14px; border-radius: 26px; }
+.dcph { flex: 1; font-size: 14px; color: #8a90a2; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dcsend { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; }
+/* ChatGPT-like: white, gray bubble, black send button */
+.dc-openai .dch b { font-weight: 600; color: #202123; } .dcaret { color: #8e8ea0; transform: translateY(-3px); }
+.dc-openai .dcu { background: #f4f4f4; color: #202123; }
+.dc-openai .dcav { background: #fff; border: 1px solid #e5e5e5; } .dc-openai .dcav img { width: 18px; height: 18px; object-fit: contain; }
+.dc-openai .dcab { color: #202123; }
+.dc-openai .dcc { border: 1px solid #e5e5e5; box-shadow: 0 2px 10px rgba(0, 0, 0, .05); } .dcplus { color: #6b6c7b; font-size: 20px; line-height: 1; }
+.dc-openai .dcsend { background: #0d0d0d; }
+/* DeepSeek-like: soft blue, whale avatar, DeepThink chip, blue send button */
+.dc-deepseek { background: #f8faff; border-color: #dbe5ff; } .dc-deepseek .dch { border-bottom-color: #e6ecff; }
+.dclogo { width: 28px; height: 28px; border-radius: 8px; background: #fff; border: 1px solid #dbe5ff; display: grid; place-items: center; } .dclogo img { width: 20px; height: 20px; object-fit: contain; }
+.dchip { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #eaf0ff; color: #3a54d8; border: 1px solid #cdd9ff; } .dchip.on { background: #dfe8ff; }
+.dc-deepseek .dch .dchip { margin-left: auto; }
+.dc-deepseek .dcu { background: #e4ebff; color: #1e2a63; }
+.dc-deepseek .dcav { background: #fff; border: 1px solid #dbe5ff; } .dc-deepseek .dcav img { width: 20px; height: 20px; object-fit: contain; }
+.dcthink { justify-self: start; padding: 3px 11px; border-radius: 999px; font-size: 12.5px; color: #5b6aa8; background: #eef2ff; }
+.dc-deepseek .dcab { color: #1b2347; }
+.dc-deepseek .dcc { background: #fff; border: 1px solid #d3deff; } .dc-deepseek .dcsend { background: #4d6bfe; }
+/* the request / response block */
+.dcode { background: #0f1b36; color: #dbe6ff; padding: 14px 16px; display: grid; align-content: start; gap: 8px; box-shadow: 0 12px 30px rgba(15, 27, 54, .25); }
+.dcb { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .dcb .small { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .2); color: #dbe6ff !important; box-shadow: none; }
+.dcl { font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 1.2px; text-transform: uppercase; color: #8aa0ff; } .dres { margin-top: 6px; }
+.dpre { margin: 0; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; color: #cfe0ff; }
+.rwrap { position: relative; } .ghost2 { visibility: hidden; } .live2 { position: absolute; left: 0; top: 0; right: 0; }
+.dfoot { margin-top: 4px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .12); font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #8aa0ff; }
+@media (min-width: 820px) { .dpane { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: stretch; } }
+@media (prefers-reduced-motion: reduce) { .typed .live.caret::after { animation: none; } }
+
+
+/* ===== Endpoint check card (My key tab) ===== */
+.epcheck { gap: 10px; }
+.eprow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; } .eprow .sel { flex: 1 1 200px; min-width: 0; } .eprow .sel select { width: 100%; }
+.eprow button { height: 46px; padding: 0 18px; border-radius: 14px; font-weight: 700; }
+.epout { display: grid; gap: 8px; }
+.epres { padding: 10px 12px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; background: #f4f6ff; border: 1px solid #e3e9fb; } .epres b { font-weight: 800; white-space: pre-wrap; }
+.epres.ok { background: #effbf3; border-color: #bfe9cd; color: #14532d; } .epres.bad { background: #fff3f2; border-color: #f5c9c4; color: #7f1d1d; } .epres.run { color: var(--muted); }
+.epraw { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(15, 27, 54, .06); font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; color: #3b4a78; }
