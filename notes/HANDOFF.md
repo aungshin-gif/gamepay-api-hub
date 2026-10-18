@@ -405,3 +405,7 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - Default model = first `gpt*` model (Responses is an OpenAI-style API); the owner's own pick is kept once changed.
 - Verified only with stubbed routes in the sandbox (chat 200, responses 404 shape). **Real gateway result not known yet.**
 - Next: owner runs both tests and sends a screenshot. If Responses works, add a "Responses" tab to `TABS` in `initDemo()` (OpenAI models, ChatGPT-like UI, marked tested). If not, leave it out.
+
+## Update 2026-10-18 (Responses tab)
+- Owner ran the Endpoint check with `gpt-5.6-sol`: **/v1/chat/completions HTTP 200 and /v1/responses HTTP 200** on the real gateway (screenshot from the owner). So Responses is verified for OpenAI models.
+- "Try it like this" now has a **Responses API** tab (ChatGPT-like UI, `/v1/responses` curl + `output_text` response shape, "tested on this gateway" in the footer). Still not verified: `/v1/messages` (Claude style), images endpoint, per-model OpenAI prices.
