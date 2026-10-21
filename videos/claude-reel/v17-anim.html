@@ -3,7 +3,7 @@
 <style>html,body{margin:0;background:#000}canvas{display:block}</style>
 </head><body><canvas id="c" width="1280" height="720"></canvas>
 <script>
-const W=1280,H=720,DUR=39.2,FPS=60;
+const W=1280,H=720,DUR=40.8,FPS=60;
 const cv=document.getElementById('c'),ctxMain=cv.getContext('2d');let ctx=ctxMain;
 const cA=document.createElement('canvas');cA.width=W;cA.height=H;const xA=cA.getContext('2d');
 const cB=document.createElement('canvas');cB.width=W;cB.height=H;const xB=cB.getContext('2d');
@@ -174,26 +174,57 @@ function S2(t){
   text('This little claw is drawn in code',W/2,H-60,'400 14px '+MONO,CREAM,'center',0.0);
 }
 
-// ---------- S3 THINKING (living background) ----------
+// ---------- S3 THINKING: UHD sci-fi AI core + animated HUD ----------
 function stepDots(cx,y,t,col){for(let i=0;i<3;i++){const a=0.25+0.75*Math.max(0,Math.sin(t*5-i*0.9));ctx.fillStyle=col;ctx.globalAlpha=a;ctx.beginPath();ctx.arc(cx-22+i*22,y,5,0,6.283);ctx.fill()}ctx.globalAlpha=1}
-function S3(t){ // THINKING: neural sculpture
-  bgImg(IMGS.b_think,t,2.8,1.12,1.0,40,10,0);
-  const sc=ctx.createLinearGradient(0,0,W*0.66,0);sc.addColorStop(0,'rgba(8,3,18,.8)');sc.addColorStop(1,'rgba(8,3,18,0)');ctx.fillStyle=sc;ctx.fillRect(0,0,W*0.66,H);
-  const cx=W*0.29;
+function bgPt(im,t,dur,z0,z1,dx,dy,u,v){const k=clamp(t/dur),s=Math.max(W/im.width,H/im.height)*lerp(z0,z1,eIO(k));return [W/2+dx*k+(u-0.5)*im.width*s,H/2+dy*k+(v-0.5)*im.height*s,s*im.width]}
+function S3(t){
+  const D=3.4,Z=[1.0,1.1,-34,6];
+  bgImg(IMGS.b_think,t,D,Z[0],Z[1],Z[2],Z[3],0);
+  const P=IMGS.b_think?bgPt(IMGS.b_think,t,D,Z[0],Z[1],Z[2],Z[3],0.6875,0.43):[880,300,1280],cx0=P[0],cy0=P[1],R=P[2]*0.168,ha=eO(prog(t,0.2,0.8));
+  // sci-fi HUD on top of the core (additive)
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+  [[1.32,0.8,'rgba(190,140,255,',3],[1.55,-0.6,'rgba(255,170,110,',2.4],[1.82,0.45,'rgba(120,200,255,',2]].forEach((r,i)=>{
+    for(let k=0;k<3;k++){const a0=t*r[1]+k*2.094;ctx.strokeStyle=r[2]+(0.55*ha)+')';ctx.lineWidth=r[3]*2;ctx.beginPath();ctx.arc(cx0,cy0,R*r[0],a0,a0+1.2);ctx.stroke()}
+    ctx.setLineDash([3,12]);ctx.lineDashOffset=-t*30*(i%2?-1:1);ctx.strokeStyle=r[2]+(0.28*ha)+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx0,cy0,R*(r[0]+0.06),0,6.283);ctx.stroke();ctx.setLineDash([]);
+  });
+  // orbiting synapse nodes
+  for(let i=0;i<7;i++){const a=t*(0.9+i*0.11)+i*0.9,rx=R*(1.4+0.12*(i%3)),ry=rx*0.26,x=cx0+Math.cos(a)*rx,y=cy0+Math.sin(a)*ry+Math.sin(a*0.5)*8,g=ctx.createRadialGradient(x,y,0,x,y,16);g.addColorStop(0,'rgba(255,230,200,'+(0.95*ha)+')');g.addColorStop(1,'rgba(255,140,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,16,0,6.283);ctx.fill()}
+  // vertical scan across the sphere
+  const sy=cy0+Math.sin(t*1.9)*R*0.92,hw=Math.sqrt(Math.max(0,R*R-(sy-cy0)*(sy-cy0)));
+  const sg=ctx.createLinearGradient(cx0-hw,0,cx0+hw,0);sg.addColorStop(0,'rgba(200,160,255,0)');sg.addColorStop(0.5,'rgba(230,200,255,'+(0.85*ha)+')');sg.addColorStop(1,'rgba(200,160,255,0)');ctx.fillStyle=sg;ctx.fillRect(cx0-hw,sy-1.5,hw*2,3);
+  ctx.restore();
+  // readout: animated activity bars (decorative)
+  const bx=W-250,by=H-92;ctx.save();ctx.globalAlpha=0.85*ha;text('NEURAL ACTIVITY',bx,by-46,'500 11px '+MONO,CREAM,'left');
+  for(let i=0;i<14;i++){const h=8+26*Math.abs(Math.sin(t*3.2+i*0.7)*Math.cos(t*1.3+i*0.35));ctx.fillStyle=i%4===0?'#ffb85c':'#b79bff';ctx.fillRect(bx+i*14,by-h,8,h)}ctx.restore();
+  // text column
+  const sc=ctx.createLinearGradient(0,0,W*0.55,0);sc.addColorStop(0,'rgba(4,2,12,.85)');sc.addColorStop(1,'rgba(4,2,12,0)');ctx.fillStyle=sc;ctx.fillRect(0,0,W*0.55,H);
+  const cx=W*0.24;
   text('01 / 02',cx,H/2-96,'600 15px '+MONO,CREAM,'center',0.7*eO(prog(t,0.1,0.5)));
   kinetic('Thinking',cx,H/2+8,'bold 86px '+SERIF,CREAM,t,0.15,0.05,150);
-  stepDots(cx,H/2+58,t,CREAM);
+  text('Taking a moment to work it out',cx,H/2+52,'500 22px '+SANS,CREAM,'center',0.85*eO(prog(t,0.9,1.4)));
+  stepDots(cx,H/2+86,t,CREAM);
 }
-const REASON=['Read the question','Weigh the options','Check the answer'];
-function S3b(t){ // REASONING: stacked glass layers of a large model
-  bgImg(IMGS.b_reason,t,2.8,1.05,1.16,-30,-6,0);
-  const sc=ctx.createLinearGradient(0,0,W*0.6,0);sc.addColorStop(0,'rgba(2,6,16,.78)');sc.addColorStop(1,'rgba(2,6,16,0)');ctx.fillStyle=sc;ctx.fillRect(0,0,W*0.6,H);
-  const x0=W*0.08;
+const REASON=['Understand the question','Weigh the options','Check the answer'];
+function S3b(t){ // REASONING: step-by-step light pulse climbing the glass stack
+  const D=3.4,Z=[1.06,1.0,-14,-4];
+  bgImg(IMGS.b_reason,t,D,Z[0],Z[1],Z[2],Z[3],0);
+  const sc=ctx.createLinearGradient(0,0,W*0.5,0);sc.addColorStop(0,'rgba(2,6,16,.85)');sc.addColorStop(1,'rgba(2,6,16,0)');ctx.fillStyle=sc;ctx.fillRect(0,0,W*0.5,H);
+  const im=IMGS.b_reason,B=im?x=>bgPt(im,t,D,Z[0],Z[1],Z[2],Z[3],0.675,x):x=>[860,x*H,1280];
+  const LY=[0.12,0.29,0.39,0.51,0.62],head=eIO(prog(t,0.5,3.0)),vb=0.80,vt=0.06,hv=lerp(vb,vt,head),ha=eO(prog(t,0.2,0.7));
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  // rising beam
+  const a=B(vb),b=B(hv),c=B(Math.min(vb,hv+0.22));
+  if(head>0&&head<1){const g=ctx.createLinearGradient(0,c[1],0,b[1]);g.addColorStop(0,'rgba(90,200,255,0)');g.addColorStop(1,'rgba(220,250,255,.95)');ctx.strokeStyle=g;ctx.lineWidth=9;ctx.lineCap='round';ctx.shadowColor='rgba(90,200,255,.9)';ctx.shadowBlur=30;ctx.beginPath();ctx.moveTo(b[0],c[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.shadowBlur=0}
+  // each layer flashes when the beam passes
+  LY.forEach((v,i)=>{const p=B(v),pass=prog(t,0.5,3.0),when=(vb-v)/(vb-vt),u=(eIO(pass)-when);if(u>0&&u<0.35){const f=1-u/0.35,rx=(i===0?235:325)*(0.8+0.2*f),ry=rx*0.17;ctx.strokeStyle=(i%2?'rgba(255,190,110,':'rgba(120,220,255,')+(0.9*f)+')';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(p[0],p[1],rx,ry,0,0,6.283);ctx.stroke()}});
+  ctx.restore();
+  // step list
+  const x0=W*0.07;
   text('02 / 02',x0,H/2-100,'600 15px '+MONO,CREAM,'left',0.7*eO(prog(t,0.1,0.5)));
   kinetic('Reasoning',x0+226,H/2-6,'bold 80px '+SERIF,CREAM,t,0.15,0.05,150);
-  REASON.forEach((l,i)=>{const a=eO(prog(t,0.9+i*0.4,1.3+i*0.4)),y=H/2+48+i*34;
-    ctx.globalAlpha=a;ctx.strokeStyle='#ffc57a';ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(x0+10,y-6,10,0,6.283);ctx.stroke();ctx.beginPath();ctx.moveTo(x0+5,y-6);ctx.lineTo(x0+9,y-2);ctx.lineTo(x0+16,y-11);ctx.stroke();ctx.globalAlpha=1;
-    text(l,x0+32,y+(1-a)*8,'500 19px '+SANS,CREAM,'left',a)});
+  REASON.forEach((l,i)=>{const a2=eO(prog(t,0.9+i*0.65,1.3+i*0.65)),y=H/2+50+i*38;
+    ctx.globalAlpha=a2;ctx.strokeStyle='#ffc57a';ctx.lineWidth=2.6;ctx.beginPath();ctx.arc(x0+11,y-7,11,0,6.283);ctx.stroke();ctx.beginPath();ctx.moveTo(x0+5,y-7);ctx.lineTo(x0+10,y-2);ctx.lineTo(x0+18,y-12);ctx.stroke();ctx.globalAlpha=1;
+    text(l,x0+36,y+(1-a2)*8,'500 22px '+SANS,CREAM,'left',a2)});
 }
 
 // ================= CHAT: UHD Higgsfield dark glass (zoom-in model pick, attach photo, send, reply) =================
@@ -485,7 +516,7 @@ return {S7:S7,S8:S8};
 })();
 const S7=NEO.S7,S8=NEO.S8;
 
-const BOUNDS=[0,2.6,6.0,8.6,11.2,30.2,34.2,37.4,39.2];
+const BOUNDS=[0,2.6,6.0,9.4,12.8,31.8,35.8,39.0,40.8];
 const NAMES=['01 \u2014 SPARK','02 \u2014 CLAUDE CODE','03 \u2014 THINKING','04 \u2014 REASONING','05 \u2014 CHAT','06 \u2014 BENCHMARK','07 \u2014 PROFILE','08 \u2014 END'];
 const LIGHT=[true,false,false,false,false,false,true,false];
 const SCENES=[t=>S1(t*1.231),t=>S2(t*1.353),S3,S3b,S4,S5,S7,S8];
