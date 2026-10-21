@@ -11,6 +11,7 @@ Code-drawn motion graphics: each `*-anim.html` is a single canvas page exposing 
 | v6 | `v6-anim.html` | 23 s | v5 + Higgsfield 3D assets: cut-out claw pet, 3D Claude Code background, 3D benchmark-bar clip; numbers and text still drawn in code |
 | v7-v9 | `v9-anim.html` | 23 s @ 60 fps | per-text Higgsfield 3D backdrops (intro, Claude Code, thinking, chat, closing), cross-zoom transitions, dolly moves, Claude Code icon in the title and model picker, closing wax-seal monogram "ST" (no full name). `?wm=0` hides the corner mark |
 | v10 | `v10-anim.html` | 23 s @ 60 fps | v9 + 3D Higgsfield spark logo intro (flip-in, float, contact shadow, sheen, orbiting glass spheres) and the same logo replacing the blue icons |
+| v11 | `v11-anim.html` | 23 s @ 60 fps | one backdrop per text (Claude Code: AI data-analysis hall; Thinking: neural sculpture; Reasoning: stacked glass model layers), profile-card ending on a Higgsfield 3D glass card, no large monogram. `?sample=0` hides the sample caption, `?wm=0` the corner mark |
 
 ## Render
 
@@ -34,3 +35,4 @@ Change the `anim*.html` filename inside the script to match the version.
 
 - v9 assets (not in the repo, fetched from Higgsfield): `hf/intro.png`, `code.png`, `think.png`, `chat.png`, `close.png`, `seal.png` (cut out), `claude-code-256.png`, `pet_cut.png`, `bench/b_0001.jpg...`. Each scene falls back to a plain dark fill if its image is missing.
 - v10 also needs `hf/spark.png` (the Higgsfield 3D logo, cut out). The reference-image upload to Higgsfield was blocked by the session network policy, so the logo was generated from a text description and only approximates the original rays.
+- v11 needs `hf/code2.png`, `reason.png`, `card.png` (blank 3D glass card) and `avatar.jpg` (the owner's profile photo, not stored here). The card's text is sample data typed by the owner; the "Sample profile" caption is on by default so it cannot be mistaken for a real billing record.
