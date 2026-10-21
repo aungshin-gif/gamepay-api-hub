@@ -1,0 +1,240 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#0b0706}canvas{display:block}</style>
+</head><body><canvas id="c" width="1280" height="720"></canvas>
+<script>
+const W=1280,H=720,DUR=29.6;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const SERIF='Charter, "Bitstream Charter", "DejaVu Serif", serif';
+const SANS='Inter, "Liberation Sans", sans-serif';
+const ACC='#e8825a', CREAM='#f4e9dc';
+
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const eO=x=>1-Math.pow(1-x,3);
+const eBack=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
+const lerp=(a,b,x)=>a+(b-a)*x;
+
+// ---- particle title: sample text pixels ----
+const off=document.createElement('canvas');off.width=W;off.height=H;
+const octx=off.getContext('2d');
+octx.fillStyle='#fff';octx.font='bold 230px '+SERIF;octx.textAlign='center';octx.textBaseline='middle';
+octx.fillText('Claude',W/2,H/2-20);
+const img=octx.getImageData(0,0,W,H).data;
+const R=rng(7),pts=[];
+for(let y=0;y<H;y+=4)for(let x=0;x<W;x+=4){if(img[(y*W+x)*4+3]>128)pts.push({tx:x,ty:y})}
+pts.forEach(p=>{
+  const a=R()*Math.PI*2,d=500+R()*700;
+  p.sx=W/2+Math.cos(a)*d;p.sy=H/2+Math.sin(a)*d*0.7;
+  p.delay=R()*0.9;p.ph=R()*6.28;p.r=1.2+R()*1.6;p.hot=R()<0.25;
+  const b=R()*Math.PI*2,e=300+R()*600;p.ex=p.tx+Math.cos(b)*e;p.ey=p.ty+Math.sin(b)*e;
+});
+
+function bg(t){
+  const g=ctx.createRadialGradient(W*0.5+Math.sin(t*.4)*120,H*0.5+Math.cos(t*.3)*60,40,W/2,H/2,W*0.75);
+  g.addColorStop(0,'#2a1812');g.addColorStop(.55,'#150c09');g.addColorStop(1,'#080504');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // soft drifting glow
+  const g2=ctx.createRadialGradient(W*0.78,H*0.2+Math.sin(t*.5)*30,0,W*0.78,H*0.2,360);
+  g2.addColorStop(0,'rgba(232,130,90,0.16)');g2.addColorStop(1,'rgba(232,130,90,0)');
+  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function text(s,x,y,font,col,align='left',a=1){ctx.globalAlpha=a;ctx.font=font;ctx.fillStyle=col;ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.fillText(s,x,y);ctx.globalAlpha=1}
+
+// ---- scene 1: particles -> "Claude" ----
+function scene1(t){
+  if(t<0||t>4.8)return;
+  const out=prog(t,3.5,4.6);
+  for(const p of pts){
+    const k=eIO(clamp((prog(t,0.2,2.8)-p.delay*0.35)/0.65));
+    let x=lerp(p.sx,p.tx,k),y=lerp(p.sy,p.ty,k);
+    if(k>=1){x+=Math.sin(t*2+p.ph)*1.2;y+=Math.cos(t*2.3+p.ph)*1.2}
+    if(out>0){const o=eIO(out);x=lerp(x,p.ex,o);y=lerp(y,p.ey,o)}
+    const a=(1-out)*clamp(k*3);
+    if(a<=0)continue;
+    ctx.globalAlpha=a;ctx.fillStyle=p.hot?CREAM:ACC;
+    ctx.beginPath();ctx.arc(x,y,p.r,0,6.283);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  const s=prog(t,2.9,3.5)*(1-out);
+  text('An AI assistant, brought to life in code',W/2,H/2+150,'300 26px '+SANS,CREAM,'center',s*0.85);
+}
+
+// ---- scene 2: chat card ----
+const PROMPT='Make a 20-second motion graphics video about Claude';
+const LINES=['Sure. Here is the storyboard:','1  Particles form the title','2  A chat box types the prompt','3  Credit line: Shin Thant'];
+function scene2(t){
+  const a0=4.2,a1=10.0;
+  if(t<a0||t>a1)return;
+  const inn=eO(prog(t,a0,a0+0.9)),out=eIO(prog(t,9.3,a1));
+  const cw=820,ch=400,cx=W/2-cw/2,cy=H/2-ch/2+lerp(70,0,inn)-out*90;
+  ctx.save();
+  ctx.globalAlpha=inn*(1-out);
+  ctx.translate(W/2,H/2);ctx.rotate((1-inn)*0.05-out*0.03);ctx.scale(lerp(.9,1,inn)-out*.04,lerp(.9,1,inn)-out*.04);ctx.translate(-W/2,-H/2);
+  ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=60;ctx.shadowOffsetY=24;
+  rr(cx,cy,cw,ch,26);ctx.fillStyle='#1d130f';ctx.fill();ctx.shadowColor='transparent';
+  ctx.strokeStyle='rgba(244,233,220,.12)';ctx.lineWidth=1.5;ctx.stroke();
+  // window dots
+  ['#ff6159','#ffbd2e','#28c941'].forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(cx+34+i*22,cy+30,6,0,6.283);ctx.fill()});
+  text('Hi, Shin. What shall we create today?',cx+40,cy+88,'500 30px '+SERIF,CREAM);
+  // input box
+  rr(cx+40,cy+112,cw-80,72,18);ctx.fillStyle='#2a1c16';ctx.fill();ctx.strokeStyle='rgba(232,130,90,.45)';ctx.stroke();
+  const n=Math.floor(prog(t,4.9,7.0)*PROMPT.length);
+  const caret=(Math.floor(t*2)%2===0||n<PROMPT.length)?'|':'';
+  text(PROMPT.slice(0,n)+(t<7.1?caret:''),cx+62,cy+156,'400 22px '+SANS,CREAM);
+  // send button
+  const pulse=t>7.0&&t<7.5?1+0.25*Math.sin((t-7)*12.5):1;
+  ctx.fillStyle=ACC;ctx.beginPath();ctx.arc(cx+cw-76,cy+148,22*pulse,0,6.283);ctx.fill();
+  ctx.strokeStyle='#1d130f';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx+cw-76,cy+158);ctx.lineTo(cx+cw-76,cy+138);ctx.moveTo(cx+cw-85,cy+147);ctx.lineTo(cx+cw-76,cy+138);ctx.lineTo(cx+cw-67,cy+147);ctx.stroke();
+  // response
+  LINES.forEach((l,i)=>{
+    const s=eO(prog(t,7.6+i*0.45,8.1+i*0.45));
+    if(s>0)text(l,cx+44,cy+240+i*40+(1-s)*14,(i===0?'500 24px ':'400 22px ')+SANS,i===0?ACC:CREAM,'left',s);
+  });
+  ctx.restore();ctx.globalAlpha=1;
+}
+
+// ---- scene 3: kinetic words ----
+const WORDS=['Write.','Code.','Think.','Build.'];
+function ring(cx,cy,t,al){
+  ctx.save();ctx.translate(cx,cy);ctx.globalAlpha=al;
+  for(let i=0;i<3;i++){
+    ctx.strokeStyle='rgba(232,130,90,'+(0.35-i*0.09)+')';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(0,0,250+i*70,90+i*34,t*0.35+i*1.0,0,6.283);ctx.stroke();
+    const a=t*(0.9+i*0.3)+i*2;ctx.fillStyle=i%2?CREAM:ACC;
+    const rx=250+i*70,ry=90+i*34,r=t*0.35+i*1.0;
+    const px=Math.cos(a)*rx,py=Math.sin(a)*ry;
+    ctx.beginPath();ctx.arc(px*Math.cos(r)-py*Math.sin(r),px*Math.sin(r)+py*Math.cos(r),6,0,6.283);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+}
+function scene3(t){
+  const a0=9.8,a1=15.2;
+  if(t<a0||t>a1)return;
+  const fin=prog(t,a0,a0+0.5),fout=1-prog(t,a1-0.5,a1);
+  ring(W/2,H/2,t,fin*fout);
+  const seg=1.15;
+  WORDS.forEach((w,i)=>{
+    const s=a0+0.2+i*seg,e=s+seg;
+    if(t<s||t>e+0.2)return;
+    const inn=eBack(prog(t,s,s+0.45)),out=eIO(prog(t,e-0.2,e+0.2));
+    ctx.save();ctx.translate(W/2,H/2+40);
+    ctx.scale(lerp(.6,1,inn)+out*0.15,lerp(.6,1,inn)+out*0.15);
+    ctx.globalAlpha=clamp(inn)*(1-out)*fout;
+    ctx.font='bold 170px '+SERIF;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle=CREAM;ctx.fillText(w,0,0);
+    // underline wipe
+    const tw=ctx.measureText(w).width,u=eO(prog(t,s+0.25,s+0.7));
+    ctx.fillStyle=ACC;ctx.fillRect(-tw/2,24,tw*u,8);
+    ctx.restore();ctx.globalAlpha=1;
+  });
+}
+
+
+// ---- scene 3b: model names ----
+const MODELS=[{n:'Sonnet 5.5',d:-1},{n:'Opus 5.5',d:1}];
+function scene3b(t){
+  const a0=15.0,a1=18.8;
+  if(t<a0||t>a1)return;
+  const fout=1-eIO(prog(t,a1-0.5,a1));
+  text('MEET THE MODELS',W/2,150,'600 24px '+SANS,ACC,'center',eO(prog(t,a0,a0+0.5))*fout);
+  MODELS.forEach((m,i)=>{
+    const s=a0+0.3+i*0.5,inn=eBack(prog(t,s,s+0.7)),al=clamp(inn)*fout;
+    const cw=450,ch=300,cx=W/2+m.d*270-cw/2,cy=H/2-ch/2+30+Math.sin(t*1.6+i*2)*8+(1-clamp(inn))*60;
+    ctx.save();ctx.globalAlpha=al;
+    ctx.shadowColor='rgba(232,130,90,.35)';ctx.shadowBlur=60;
+    rr(cx,cy,cw,ch,28);ctx.fillStyle='#1d130f';ctx.fill();ctx.shadowColor='transparent';
+    ctx.strokeStyle=i?'rgba(232,130,90,.7)':'rgba(244,233,220,.25)';ctx.lineWidth=2;ctx.stroke();
+    // orbiting dots badge
+    for(let k=0;k<8;k++){const a=k/8*6.283+t*(i?-1:1)*0.9;ctx.fillStyle=k%2?ACC:CREAM;ctx.beginPath();ctx.arc(cx+cw/2+Math.cos(a)*22,cy+78+Math.sin(a)*22,4,0,6.283);ctx.fill()}
+    text('CLAUDE',cx+cw/2,cy+150,'600 18px '+SANS,ACC,'center');
+    // name reveal letter by letter
+    const nm=m.n;ctx.font='bold 62px '+SERIF;const tw=ctx.measureText(nm).width;let x=cx+cw/2-tw/2;
+    for(let k=0;k<nm.length;k++){
+      const w=ctx.measureText(nm[k]).width,a=eO(prog(t,s+0.5+k*0.06,s+0.9+k*0.06));
+      if(a>0){ctx.globalAlpha=al*a;ctx.font='bold 62px '+SERIF;ctx.fillStyle=CREAM;ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText(nm[k],x,cy+235+(1-a)*18)}
+      x+=w;
+    }
+    ctx.restore();ctx.globalAlpha=1;
+  });
+}
+
+
+// ---- scene 3c: Opus vs Sonnet stats ----
+const STATS=[{n:'SWE-Bench Pro',o:89.9,s:81.3},{n:'SWE-Bench Multilingual',o:93.9,s:90.3},{n:'SWE-Bench Multimodal',o:61.4,s:54.3}];
+function scene3c(t){
+  const a0=18.6,a1=23.6;
+  if(t<a0||t>a1)return;
+  const fin=eO(prog(t,a0,a0+0.5)),fout=1-eIO(prog(t,a1-0.5,a1));
+  const al=fin*fout;
+  text('WHERE OPUS 5.5 LEADS',W/2,105,'600 24px '+SANS,ACC,'center',al);
+  // legend
+  ctx.globalAlpha=al;ctx.fillStyle=ACC;ctx.fillRect(W/2-170,128,18,18);text('Opus 5.5',W/2-144,143,'500 20px '+SANS,CREAM,'left',al);
+  ctx.globalAlpha=al;ctx.fillStyle='#a89a8c';ctx.fillRect(W/2+20,128,18,18);text('Sonnet 5.5',W/2+46,143,'500 20px '+SANS,CREAM,'left',al);
+  const bx=190,bw=900,bh=28;
+  STATS.forEach((r,i)=>{
+    const y=215+i*140,s0=a0+0.5+i*0.45;
+    text(r.n,bx,y,'600 24px '+SERIF,CREAM,'left',al*eO(prog(t,s0-0.2,s0+0.3)));
+    [['o',ACC,y+18],['s','#a89a8c',y+18+bh+10]].forEach(([k,c,by])=>{
+      const v=r[k],p=eO(prog(t,s0+(k==='s'?0.15:0),s0+1.1+(k==='s'?0.15:0)));
+      ctx.globalAlpha=al;ctx.fillStyle='rgba(244,233,220,.08)';rr(bx,by,bw,bh,8);ctx.fill();
+      ctx.fillStyle=c;if(p>0){rr(bx,by,Math.max(8,bw*v/100*p),bh,8);ctx.fill()}
+      text((v*p).toFixed(1),bx+bw+16,by+bh-6,(k==='o'?'bold ':'500 ')+'22px '+SANS,k==='o'?ACC:'#a89a8c','left',al*clamp(p*2));
+    });
+  });
+  text('Vendor-reported scores via third-party summaries. Check Anthropic\'s system card for exact figures.',W/2,H-42,'300 17px '+SANS,CREAM,'center',al*0.6);
+}
+
+// ---- scene 4: ask anything ----
+function scene4(t){
+  const a0=23.4,a1=26.8;
+  if(t<a0||t>a1)return;
+  const inn=eO(prog(t,a0,a0+0.7)),out=eIO(prog(t,a1-0.5,a1));
+  const al=inn*(1-out);
+  // orbiting dots logo (original shape)
+  ctx.save();ctx.translate(W/2,H/2-110+(1-inn)*40);ctx.globalAlpha=al;
+  for(let i=0;i<12;i++){
+    const a=i/12*6.283+t*0.8,r=44+Math.sin(t*2+i)*6;
+    ctx.fillStyle=i%3?ACC:CREAM;ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r,7+Math.sin(t*3+i)*1.5,0,6.283);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+  text('Ask anything.',W/2,H/2+60+(1-inn)*30,'bold 110px '+SERIF,CREAM,'center',al);
+  const u=eO(prog(t,a0+0.5,a0+1.3));
+  ctx.globalAlpha=al;ctx.fillStyle=ACC;ctx.fillRect(W/2-300*u,H/2+92,600*u,6);ctx.globalAlpha=1;
+  text('Write. Code. Think. Build.',W/2,H/2+170,'300 30px '+SANS,CREAM,'center',al*prog(t,a0+1.0,a0+1.6)*0.85);
+}
+
+// ---- scene 5: credit ----
+function scene5(t){
+  const a0=26.6;
+  if(t<a0)return;
+  const inn=prog(t,a0,a0+0.6),fade=1-prog(t,DUR-0.6,DUR);
+  text('MADE BY',W/2,H/2-70,'600 22px '+SANS,ACC,'center',eO(inn)*fade);
+  const name='Shin Thant';
+  ctx.font='bold 130px '+SERIF;
+  const tw=ctx.measureText(name).width;let x=W/2-tw/2;
+  for(let i=0;i<name.length;i++){
+    const s=eBack(prog(t,a0+0.3+i*0.07,a0+0.8+i*0.07));
+    const cw=ctx.measureText(name[i]).width;
+    if(s>0){ctx.save();ctx.translate(x+cw/2,H/2+50);ctx.scale(clamp(s,0,1.2),clamp(s,0,1.2));ctx.globalAlpha=clamp(s)*fade;
+      ctx.font='bold 130px '+SERIF;ctx.fillStyle=CREAM;ctx.textAlign='center';ctx.fillText(name[i],0,0);ctx.restore();ctx.globalAlpha=1}
+    x+=cw;
+  }
+  const u=eO(prog(t,a0+1.2,a0+1.9));
+  ctx.globalAlpha=fade;ctx.fillStyle=ACC;ctx.fillRect(W/2-120*u,H/2+80,240*u,5);ctx.globalAlpha=1;
+  text('Unofficial fan-made video. Claude is a product of Anthropic.',W/2,H-60,'300 18px '+SANS,CREAM,'center',prog(t,a0+1.2,a0+1.8)*fade*0.6);
+}
+
+window.draw=function(t){
+  ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;
+  bg(t);scene1(t);scene2(t);scene3(t);scene3b(t);scene3c(t);scene4(t);scene5(t);
+  // vignette
+  const v=ctx.createRadialGradient(W/2,H/2,H*0.45,W/2,H/2,W*0.7);
+  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.45)');
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+};
+window.DUR=DUR;
+draw(0);
+</script></body></html>
