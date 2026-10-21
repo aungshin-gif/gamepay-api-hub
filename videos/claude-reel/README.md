@@ -14,6 +14,7 @@ Code-drawn motion graphics: each `*-anim.html` is a single canvas page exposing 
 | v11 | `v11-anim.html` | 23 s @ 60 fps | one backdrop per text (Claude Code: AI data-analysis hall; Thinking: neural sculpture; Reasoning: stacked glass model layers), profile-card ending on a Higgsfield 3D glass card, no large monogram. `?sample=0` hides the sample caption, `?wm=0` the corner mark |
 | v13 | `v13-anim.html` | 23 s @ 60 fps | v11 sci-fi 3D scenes + a neo-brutalist last page only (Higgsfield 3D profile card in light and dark, letter-tile title, light/dark toggle). `v12-neo-experiment-anim.html` is the all-neo version that was NOT wanted, kept only for reference |
 | v14 | `v14-anim.html` | 23 s @ 60 fps | v13 with a Higgsfield dark-glass chat window and model dropdown (Sonnet 5.5, Fable 5.1, Opus 5.5, Claude Code; Opus gets picked) and a data-analysis benchmark stage with code-animated 3D bars |
+| v15 | `v15-anim.html` | 25 s @ 60 fps | v14 + the benchmark split into one panel per model (Opus 5.5 / Sonnet 5.5, VS chip, lead badges) and an animated ending (confetti, spinning logo, THANKS letter tiles, iris close) |
 
 ## Render
 
