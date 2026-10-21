@@ -8,6 +8,7 @@ Code-drawn motion graphics: each `*-anim.html` is a single canvas page exposing 
 | v1-v3 | `v1-v3-anim.html` | 21-29.6 s | single dark theme, model names + benchmark bars |
 | v4 | `v4-anim.html` | 29.6 s | per-scene backgrounds, motion-blur type, stair wipes, HUD |
 | v5 | `v5-anim.html` | 23 s | Claude Code 3D scene + walking claw pet (code-drawn), living "thinking" background, model-picker zoom (Sonnet 5.5 to Opus 5.5), grain + vignette |
+| v6 | `v6-anim.html` | 23 s | v5 + Higgsfield 3D assets: cut-out claw pet, 3D Claude Code background, 3D benchmark-bar clip; numbers and text still drawn in code |
 
 ## Render
 
@@ -26,3 +27,5 @@ Change the `anim*.html` filename inside the script to match the version.
   reports, not Anthropic's own page. Verify against the system card before publishing.
 - The pet is drawn in code. A 3D Higgsfield image can replace it once the image host is allowed.
 - No keys or tokens live here.
+
+- v6 needs three Higgsfield assets next to the page (not stored in the repo): `hf/pet_cut.png` (pet with transparent background), `hf/bg3d.png`, and `hf/bench/b_0001.jpg ...` (frames of the 3D bar clip, 30 fps, 1280x720). Without them the scenes fall back to the code-drawn versions.
