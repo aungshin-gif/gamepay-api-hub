@@ -16,6 +16,7 @@ Code-drawn motion graphics: each `*-anim.html` is a single canvas page exposing 
 | v14 | `v14-anim.html` | 23 s @ 60 fps | v13 with a Higgsfield dark-glass chat window and model dropdown (Sonnet 5.5, Fable 5.1, Opus 5.5, Claude Code; Opus gets picked) and a data-analysis benchmark stage with code-animated 3D bars |
 | v15 | `v15-anim.html` | 25 s @ 60 fps | v14 + the benchmark split into one panel per model (Opus 5.5 / Sonnet 5.5, VS chip, lead badges) and an animated ending (confetti, spinning logo, THANKS letter tiles, iris close) |
 | v16 | `v16-anim.html` | 25 s @ 60 fps | v15 with the owner-supplied Claude logo (`hf/spark_official.png`, background removed, shape and colour untouched) beside every model name; the ending carries a small "Unofficial fan-made video" note |
+| v17 | `v17-anim.html` | 39.2 s @ 60 fps | Chat scene rebuilt at UHD (4K Higgsfield glass assets), larger window, camera zoom-in on the model picker (Sonnet 5.5 -> Fable 5.1 -> Opus 5.5), then "+" -> file picker -> photo chosen -> typed message -> send -> streamed reply. The five other picker thumbnails are code-drawn gradients, not real photos. Output is still 1280x720 |
 
 ## Render
 
@@ -42,3 +43,4 @@ Change the `anim*.html` filename inside the script to match the version.
 - v11 needs `hf/code2.png`, `reason.png`, `card.png` (blank 3D glass card) and `avatar.jpg` (the owner's profile photo, not stored here). The card's text is sample data typed by the owner; the "Sample profile" caption is on by default so it cannot be mistaken for a real billing record.
 - v13 also needs `hf/profile_l.png` and `hf/profile_d.png` (blank neo-brutalist 3D card, transparent background; the dark one was generated from the light one as a reference so the layout matches). v12 additionally uses chat/menu/term/stats/think_nb/stack_nb assets.
 - v14 also needs `hf/chat_glass.png`, `hf/menu_glass.png` (transparent dark glass UI) and `hf/bench_env.png` (data-analysis stage, opaque). No Fable 5.1 benchmark numbers are available, so the chart only compares Opus 5.5 and Sonnet 5.5.
+- v17 also needs `hf/uchat.png`, `umenu.png`, `uplus.png`, `upick.png` (4K transparent dark-glass UI, blank, generated with gpt_image_2_5 quality high, about 4.25 credits each) and `hf/avatar.jpg` (the owner's photo, not stored here).
