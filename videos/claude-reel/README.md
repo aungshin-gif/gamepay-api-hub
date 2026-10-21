@@ -13,6 +13,7 @@ Code-drawn motion graphics: each `*-anim.html` is a single canvas page exposing 
 | v10 | `v10-anim.html` | 23 s @ 60 fps | v9 + 3D Higgsfield spark logo intro (flip-in, float, contact shadow, sheen, orbiting glass spheres) and the same logo replacing the blue icons |
 | v11 | `v11-anim.html` | 23 s @ 60 fps | one backdrop per text (Claude Code: AI data-analysis hall; Thinking: neural sculpture; Reasoning: stacked glass model layers), profile-card ending on a Higgsfield 3D glass card, no large monogram. `?sample=0` hides the sample caption, `?wm=0` the corner mark |
 | v13 | `v13-anim.html` | 23 s @ 60 fps | v11 sci-fi 3D scenes + a neo-brutalist last page only (Higgsfield 3D profile card in light and dark, letter-tile title, light/dark toggle). `v12-neo-experiment-anim.html` is the all-neo version that was NOT wanted, kept only for reference |
+| v14 | `v14-anim.html` | 23 s @ 60 fps | v13 with a Higgsfield dark-glass chat window and model dropdown (Sonnet 5.5, Fable 5.1, Opus 5.5, Claude Code; Opus gets picked) and a data-analysis benchmark stage with code-animated 3D bars |
 
 ## Render
 
@@ -38,3 +39,4 @@ Change the `anim*.html` filename inside the script to match the version.
 - v10 also needs `hf/spark.png` (the Higgsfield 3D logo, cut out). The reference-image upload to Higgsfield was blocked by the session network policy, so the logo was generated from a text description and only approximates the original rays.
 - v11 needs `hf/code2.png`, `reason.png`, `card.png` (blank 3D glass card) and `avatar.jpg` (the owner's profile photo, not stored here). The card's text is sample data typed by the owner; the "Sample profile" caption is on by default so it cannot be mistaken for a real billing record.
 - v13 also needs `hf/profile_l.png` and `hf/profile_d.png` (blank neo-brutalist 3D card, transparent background; the dark one was generated from the light one as a reference so the layout matches). v12 additionally uses chat/menu/term/stats/think_nb/stack_nb assets.
+- v14 also needs `hf/chat_glass.png`, `hf/menu_glass.png` (transparent dark glass UI) and `hf/bench_env.png` (data-analysis stage, opaque). No Fable 5.1 benchmark numbers are available, so the chart only compares Opus 5.5 and Sonnet 5.5.
