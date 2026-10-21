@@ -9,6 +9,7 @@
 
   // ---------- icons (inline SVG, drawn here so the page needs no image files) ----------
   var ICONS = {
+    think: '<path class="f" d="M12 3.2l1.9 4.9 4.9 1.9-4.9 1.9L12 16.8l-1.9-4.9L5.2 10l4.9-1.9z"/><path d="M12 3.2l1.9 4.9 4.9 1.9-4.9 1.9L12 16.8l-1.9-4.9L5.2 10l4.9-1.9zM18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
     cube: '<path class="f" d="M12 2.8l8 4.4v9.6l-8 4.4-8-4.4V7.2z"/><path d="M12 2.8l8 4.4v9.6l-8 4.4-8-4.4V7.2z"/><path d="M4 7.2l8 4.4 8-4.4M12 11.6v9.6"/>',
     chat: '<path class="f" d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"/>',
     book: '<path class="f" d="M12 7C10.4 5.5 7.6 4.7 3.5 5v13c4.1-.3 6.9.4 8.5 2z"/><path class="f" d="M12 7c1.6-1.5 4.4-2.3 8.5-2v13c-4.1-.3-6.9.4-8.5 2z"/><path d="M12 7C10.4 5.5 7.6 4.7 3.5 5v13c4.1-.3 6.9.4 8.5 2z"/><path d="M12 7c1.6-1.5 4.4-2.3 8.5-2v13c-4.1-.3-6.9.4-8.5 2z"/><path d="M6.5 9.4c1.4 0 2.7.3 3.7.9M6.5 12.6c1.4 0 2.7.3 3.7.9M17.5 9.4c-1.4 0-2.7.3-3.7.9M17.5 12.6c-1.4 0-2.7.3-3.7.9"/>',
@@ -130,12 +131,14 @@
   function providerOf(id) {
     id = String(id).toLowerCase();
     if (/^deepseek/.test(id)) return { key: "deepseek", name: "DeepSeek", accent: "sky", logo: "assets/deepseek.png" };
+    if (/^claude/.test(id)) return { key: "claude", name: "Claude", accent: "violet", logo: null };
     if (/^(gpt|chatgpt|o\d|text-|davinci|codex|dall-?e|sora)/.test(id)) return { key: "openai", name: "OpenAI", accent: "teal", logo: /^gpt-?5/.test(id) ? "assets/openai-green.png" : "assets/openai-white.png" };
     return { key: "other", name: "Other", accent: "violet", logo: null };
   }
   // What a model is for: only "text" models can be used in the chat box and the Test button.
   function kindOf(id) { id = String(id).toLowerCase(); return /image|dall-?e/.test(id) ? "image" : /sora|video/.test(id) ? "video" : "text"; }
   function logoFor(m, h) {
+    if (/claude[-_ ]?code/i.test(String(m))) return logoImg(h, "assets/claude-code.png"); // custom compact icon for a Claude Code option
     var p = providerOf(m); if (p.logo) return logoImg(h, p.logo);
     var g = el("span", "glyph", p.name.charAt(0)); g.style.fontSize = Math.round(h * .62) + "px"; return g;
   }
@@ -319,15 +322,27 @@
     sel.value = ids.indexOf(cur) >= 0 ? cur : (ids.indexOf("deepseek-flash") >= 0 ? "deepseek-flash" : ids[0]);
     buildPop(); updateImgNote(); syncImageMode();
   }
-  // Small model menu that opens right under the model button (not a full-screen sheet).
+  // What a model is good for, read from its id only. Only clear cases get a badge (no guessing for the rest).
+  function capOf(m) {
+    m = String(m).toLowerCase();
+    if (/codex|code/.test(m)) return { key: "code", label: "Code", icon: "code" };
+    if (/think|reason|(^|[-/])o\d(-|$)|r1/.test(m)) return { key: "think", label: "Thinking", icon: "think" };
+    return null;
+  }
+  // Small model menu that opens right under the model button (not a full-screen sheet). Grouped by company, options ease in one by one.
   function buildPop() {
     var sel = $("chatModel"), list = $("pop"); if (!sel.options.length) return;
     $("modelBtnName").textContent = sel.value; $("modelBtnLogo").textContent = ""; $("modelBtnLogo").appendChild(logoFor(sel.value, 18)); list.textContent = "";
-    Array.prototype.forEach.call(sel.options, function (o) {
-      var m = o.value, p = cfg.PRICES[m], on = m === sel.value;
-      var b = el("button", "opt" + (on ? " on" : "")); b.type = "button"; b.setAttribute("role", "option"); b.setAttribute("aria-selected", on ? "true" : "false"); b.dataset.model = m;
+    var opts = Array.prototype.slice.call(sel.options).map(function (o, i) { return { m: o.value, i: i, p: providerOf(o.value) }; });
+    opts.sort(function (a, b) { return a.p.name === b.p.name ? a.i - b.i : (a.p.name < b.p.name ? -1 : 1); });
+    var last = "", n = 0;
+    opts.forEach(function (it) {
+      var m = it.m, p = cfg.PRICES[m], on = m === sel.value, cap = capOf(m);
+      if (it.p.name !== last) { last = it.p.name; var gh = el("div", "ogrp", last); gh.setAttribute("role", "presentation"); gh.style.setProperty("--i", n++); list.appendChild(gh); }
+      var b = el("button", "opt" + (on ? " on" : "") + (cap ? " cap-" + cap.key : "")); b.type = "button"; b.setAttribute("role", "option"); b.setAttribute("aria-selected", on ? "true" : "false"); b.dataset.model = m; b.style.setProperty("--i", n++);
       var lg = el("span", "olg"); lg.appendChild(logoFor(m, 20)); b.appendChild(lg);
-      var tx = el("span", "otx"); tx.appendChild(el("b", "", m)); tx.appendChild(el("span", "otag", p ? "$" + p.input + " in · $" + p.output + " out" : providerOf(m).name + " · price not set")); b.appendChild(tx);
+      var tx = el("span", "otx"); var nm = el("b", "", m); if (cap) { var ci = el("span", "ocap"); ci.title = cap.label; ci.setAttribute("aria-label", cap.label); ci.innerHTML = svg(cap.icon); nm.appendChild(ci); }
+      tx.appendChild(nm); tx.appendChild(el("span", "otag", p ? "$" + p.input + " in \u00b7 $" + p.output + " out" : it.p.name + " \u00b7 price not set")); b.appendChild(tx);
       var rt = el("span", "ort"); rt.appendChild(pchip(m)); if (on) { var ck = el("span", "ock"); ck.innerHTML = svg("check"); rt.appendChild(ck); } b.appendChild(rt);
       list.appendChild(b);
     });
@@ -425,12 +440,29 @@
   // The key box lives on the My key tab; Chat shows a short reminder (with a shortcut) until a key has been entered.
   function hasKey() { return !!(state.key || $("keyInput").value.trim()); }
   function syncChatKeyNote() { $("chatNeedKey").hidden = MOCK || hasKey(); }
+  // Sliding highlight under the active nav button (one shared element that moves, instead of each button repainting).
+  function moveInd(instant) {
+    var nav = $("nav"), ind = nav.querySelector(".ind"), on = nav.querySelector("button.on"); if (!ind || !on) return;
+    if (instant) ind.style.transition = "none";
+    ind.style.width = on.offsetWidth + "px"; ind.style.height = on.offsetHeight + "px";
+    ind.style.transform = "translate(" + on.offsetLeft + "px," + on.offsetTop + "px)";
+    nav.classList.add("has-ind");
+    if (instant) { void ind.offsetWidth; ind.style.transition = ""; }
+  }
+  window.addEventListener("resize", function () { moveInd(true); }); window.addEventListener("load", function () { moveInd(true); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveInd(true); });
+  setTimeout(function () { moveInd(true); }, 0);
   function showTab(name) {
-    document.body.setAttribute("data-tab", name);
-    document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-tab") === name); });
-    document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + name); });
-    if (name === "chat") syncChatKeyNote();
-    window.scrollTo(0, 0);
+    var swap = function () {
+      document.body.setAttribute("data-tab", name);
+      document.querySelectorAll(".nav button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-tab") === name); });
+      document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("on", p.id === "tab-" + name); });
+      if (name === "chat") syncChatKeyNote();
+      window.scrollTo(0, 0); moveInd();
+    };
+    var cur = document.body.getAttribute("data-tab");
+    if (document.startViewTransition && !reduced && cur !== name) { document.documentElement.classList.add("vt"); document.startViewTransition(swap).finished.then(function () { document.documentElement.classList.remove("vt"); }, function () { document.documentElement.classList.remove("vt"); }); }
+    else swap();
   }
   function sendChat() {
     if (chat.busy) { if (chat.ctl) chat.ctl.abort(); return; }

@@ -336,3 +336,12 @@ Repo is public on purpose (free Pages). **Never commit keys, passwords, admin to
 - After every squash-merge the branch has the old commits, so the next PR conflicts. What works without force-push (force-push and `git checkout -B` resets were denied by the permission classifier): `git merge origin/main`, then `git checkout --ours` the conflicted files (the branch already contains everything main has), `git add`, commit, and check that `git diff origin/main HEAD` shows only the new work. Then open the PR and squash-merge with `expectedHeadSha` set to the full 40-character SHA.
 - Test with Playwright from `/opt/node-tools` (Chromium in `/opt/pw-browsers`, launch with `executablePath: '/opt/pw-browsers/chromium'`) against `python3 -m http.server`; stub the gateway with `page.route`; check 320, 390 and 820 px for horizontal overflow and console errors. Do not use `pkill -f <pattern>` in the same shell command line (it matches and kills your own shell). The sandbox cannot reach Railway, the gateway, DeepSeek, OpenAI or most websites.
 - A CSS class called `warn` already exists for notices; do not reuse it for new widgets (the history bars did and overflowed).
+
+## UI refinement pass (2026-10-22): motion, model menu, credit line
+
+Additive only: colours, layout and type are unchanged (styles are appended at the end of `web/styles.css`).
+- **Motion:** sections ease in one by one; Chrome-class browsers cross-fade between tabs with the View Transitions API (feature-detected, falls back to the plain fade); one sliding highlight under the active nav item (`.nav .ind`, positioned by `moveInd()` in `app.js`); calmer focus state on the chat box; chat bubbles ease in. All of it is switched off by `prefers-reduced-motion`.
+- **Model menu:** grouped by company, options ease in one after another, left accent bar + check on the selected one, small badges for clear cases only (`capOf()`: ids with codex/code -> Code, ids with think/reason/o-series -> Thinking). No guessing for other ids.
+- **Claude Code icon:** `web/assets/claude-code.png` (made with Higgsfield, cut out to 96 px). `logoFor()` shows it for any model id matching `claude-code`. The gateway has no Claude channel yet, so it does not appear today.
+- **Credit line:** small "Shin Thant" watermark at the top centre and "Made by Shin Thant" under the footer text.
+- Checked in a headless browser with `?mock=1` at 320/390/820/1280 px: tabs, nav highlight position, model menu, sending a chat message, no console errors, no horizontal overflow. Not checked against the real gateway.
