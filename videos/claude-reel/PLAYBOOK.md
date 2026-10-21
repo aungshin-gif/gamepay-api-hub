@@ -125,7 +125,7 @@ Building blocks: `camAt(t)` keyframes, `S4_cursor(t)` waypoints (`[time,x,y]`, e
 
 ## 10. Files in this folder
 
-- `vNN-anim.html`: the page for each version (v1 to v19). `v12-neo-experiment-anim.html` is an unwanted all-neo experiment kept for reference.
+- `vNN-anim.html`: the page for each version. Not every number has its own file: v1-v3 share one file, there is no v7 or v8 file, and v18 is the later state of `v17-anim.html`. `v12-neo-experiment-anim.html` is an unwanted all-neo experiment kept for reference.
 - `render-*.js`: the matching Playwright render scripts.
 - `README.md`: version table with what changed in each version.
 - `PLAYBOOK.md`: this file.
