@@ -10,6 +10,7 @@ Code-drawn motion graphics: each `*-anim.html` is a single canvas page exposing 
 | v5 | `v5-anim.html` | 23 s | Claude Code 3D scene + walking claw pet (code-drawn), living "thinking" background, model-picker zoom (Sonnet 5.5 to Opus 5.5), grain + vignette |
 | v6 | `v6-anim.html` | 23 s | v5 + Higgsfield 3D assets: cut-out claw pet, 3D Claude Code background, 3D benchmark-bar clip; numbers and text still drawn in code |
 | v7-v9 | `v9-anim.html` | 23 s @ 60 fps | per-text Higgsfield 3D backdrops (intro, Claude Code, thinking, chat, closing), cross-zoom transitions, dolly moves, Claude Code icon in the title and model picker, closing wax-seal monogram "ST" (no full name). `?wm=0` hides the corner mark |
+| v10 | `v10-anim.html` | 23 s @ 60 fps | v9 + 3D Higgsfield spark logo intro (flip-in, float, contact shadow, sheen, orbiting glass spheres) and the same logo replacing the blue icons |
 
 ## Render
 
@@ -32,3 +33,4 @@ Change the `anim*.html` filename inside the script to match the version.
 - v6 needs three Higgsfield assets next to the page (not stored in the repo): `hf/pet_cut.png` (pet with transparent background), `hf/bg3d.png`, and `hf/bench/b_0001.jpg ...` (frames of the 3D bar clip, 30 fps, 1280x720). Without them the scenes fall back to the code-drawn versions.
 
 - v9 assets (not in the repo, fetched from Higgsfield): `hf/intro.png`, `code.png`, `think.png`, `chat.png`, `close.png`, `seal.png` (cut out), `claude-code-256.png`, `pet_cut.png`, `bench/b_0001.jpg...`. Each scene falls back to a plain dark fill if its image is missing.
+- v10 also needs `hf/spark.png` (the Higgsfield 3D logo, cut out). The reference-image upload to Higgsfield was blocked by the session network policy, so the logo was generated from a text description and only approximates the original rays.
